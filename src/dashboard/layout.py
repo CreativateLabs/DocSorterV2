@@ -1,9 +1,13 @@
-"""3-Panel Chat-First Dashboard Layout.
+"""DocSorterV2 — Refokussiertes Dashboard-Layout (Input → Output).
 
-Alles ist Chat-basiert ausser /config (Einstellungen).
-3-Panel: Left Sidebar (Navigation) + Center Chat + Right Panel (Artifacts/Tabs).
+Header-Navigation: Logo | Input | Output | Profil-Icon
+Keine Sidebar. Onboarding laeuft Fullscreen (siehe wizard.py).
 
-Orientiert an cNode MVP, SCIL Platform und Scavenger AI Patterns.
+V1-Pages (chat, finance, bank, messenger, calendar, scheduler, timeline,
+terminal, analytics, file_browser, folders, archiv_info, history, overview,
+search_chat, unified_chat, assistant, email_manager) sind nicht in der
+Navigation — die Files bleiben liegen und koennen bei Bedarf reaktiviert
+werden.
 """
 
 from __future__ import annotations
@@ -15,25 +19,12 @@ from nicegui import app, run, ui
 
 from .pages import config_editor, wizard, landing
 from .pages import system as system_page
+from .pages import profile as profile_page
+from .pages import keywords_hub as keywords_hub_page
+from .pages import input_page, output_page, settings, roadmap
 from ..version import __version__ as _APP_VERSION
 from ..email_webhook import register_routes as _register_email_webhook
 from ..messenger_webhook import register_routes as _register_messenger_webhook
-from .pages import chat as chat_page
-from .pages import profile as profile_page
-from .pages import search_chat as search_chat_page
-from .pages import unified_chat as unified_chat_page
-from .pages import archiv_info as archiv_info_page
-from .pages import assistant as assistant_page
-from .pages import folders as folders_page
-from .pages import email_manager as email_manager_page
-from .pages import scheduler as scheduler_page
-from .pages import calendar as calendar_page
-from .pages import timeline as timeline_page
-from .pages import keywords_hub as keywords_hub_page
-from .pages import finance as finance_page
-from .pages import bank as bank_page
-from .pages import messenger as messenger_page
-from .components import right_panel
 from .theme import inject_theme, enable_scroll
 from .agent import DocSorterAgent
 
@@ -126,72 +117,61 @@ def _close_all_panels() -> None:
         _backdrop_ref.classes(remove="active")
 
 
-def _header() -> None:
-    """Moderner dunkler Header mit Branding, Dark Mode und Panel-Toggles."""
+def _header(active: str = "") -> None:
+    """Schlanker Header: Logo | Input | Output | Profil-Icon.
+
+    `active` ist eine der Routen ("/input" oder "/output") und steuert
+    den aktiven Nav-Link.
+    """
+
+    def _nav_btn(label: str, route: str, icon: str) -> None:
+        is_active = active == route
+        bg = "rgba(0,212,255,0.12)" if is_active else "transparent"
+        border = "1px solid rgba(0,212,255,0.35)" if is_active else "1px solid transparent"
+        color = "#00d4ff" if is_active else "#e2e8f0"
+        weight = "700" if is_active else "500"
+        ui.button(label, icon=icon, on_click=lambda r=route: ui.navigate.to(r)).props(
+            "flat no-caps dense"
+        ).style(
+            f"background:{bg};border:{border};color:{color};font-weight:{weight};"
+            "border-radius:8px;padding:6px 14px;letter-spacing:0.01em;"
+            "text-transform:none"
+        )
+
     with ui.header().classes("ds-header items-center justify-between px-4"):
+        # Links: Branding
         with ui.row().classes("items-center gap-3"):
-            # Left Panel Toggle — collapse auf Desktop, overlay auf Mobile
-            def _toggle_left():
-                ui.run_javascript("""
-                    const panel = document.querySelector('.ds-left-panel');
-                    const backdrop = document.querySelector('.ds-backdrop');
-                    if (!panel) return;
-                    if (window.innerWidth > 1023) {
-                        // Desktop: collapse/expand
-                        panel.classList.toggle('ds-left-collapsed');
-                    } else {
-                        // Mobile: overlay
-                        const open = panel.classList.contains('ds-panel-visible');
-                        if (open) {
-                            panel.classList.remove('ds-panel-visible');
-                            if (backdrop) backdrop.classList.remove('active');
-                        } else {
-                            panel.classList.add('ds-panel-visible');
-                            if (backdrop) backdrop.classList.add('active');
-                        }
-                    }
-                """)
+            with ui.element("div").style("cursor:pointer;display:flex;align-items:center;gap:8px") \
+                    .on("click", lambda: ui.navigate.to("/input")):
+                ui.icon("description").classes("text-xl text-blue-400")
+                ui.label("Doc-Sorter").style(
+                    "font-size:1.125rem;font-weight:700;color:white;letter-spacing:-0.01em"
+                )
+                ui.label(f"v{_APP_VERSION}").style(
+                    "font-size:0.65rem;font-weight:600;color:rgba(148,163,184,0.8);"
+                    "background:rgba(255,255,255,0.08);padding:2px 8px;border-radius:4px;"
+                    "letter-spacing:0.02em"
+                )
 
-            ui.button(icon="menu", on_click=_toggle_left).props(
-                "flat round color=white size=sm"
-            ).tooltip("Navigation ein-/ausblenden")
+        # Mitte: Kern-Navigation
+        with ui.row().classes("items-center gap-2"):
+            _nav_btn("Input", "/input", "upload_file")
+            _nav_btn("Output", "/output", "folder_special")
 
-            ui.icon("description").classes("text-xl text-blue-400")
-            ui.label("Doc-Sorter").style(
-                "font-size:1.125rem;font-weight:700;color:white;letter-spacing:-0.01em"
-            )
-            ui.label(f"v{_APP_VERSION}").style(
-                "font-size:0.65rem;font-weight:600;color:rgba(148,163,184,0.8);"
-                "background:rgba(255,255,255,0.08);padding:2px 8px;border-radius:4px;"
-                "letter-spacing:0.02em"
-            )
-
+        # Rechts: Profil-Icon mit Dropdown
         with ui.row().classes("items-center gap-1"):
-            # Shortcut zu Dateien & History
-            ui.button(
-                icon="folder_special",
-                on_click=lambda: ui.navigate.to("/dateien"),
-            ).props("flat round color=white size=sm").tooltip("Dateien")
-
-            # Dark Mode Toggle
-            dark = ui.dark_mode()
-            ui.button(
-                icon="dark_mode",
-                on_click=lambda: dark.set_value(not dark.value),
-            ).props("flat round color=white size=sm").tooltip("Dark Mode umschalten")
-
-            # User Dropdown
             username = app.storage.user.get("username", "User")
             with ui.button(icon="account_circle").props(
                 "flat round color=white size=sm"
-            ).tooltip(f"Profil: {username} \u2014 Abmelden"):
-                with ui.menu().style("min-width:180px;padding:4px 0"):
-                    with ui.column().style("padding:10px 16px 6px"):
+            ).tooltip(f"Profil: {username}"):
+                with ui.menu().style("min-width:200px;padding:4px 0"):
+                    with ui.column().style("padding:10px 16px 6px;gap:0"):
                         ui.label(username).style("font-weight:600;font-size:0.85rem")
                         ui.label("Angemeldet").style("font-size:0.7rem;color:#9CA3AF")
                     ui.separator()
                     ui.menu_item("Mein Profil", on_click=lambda: ui.navigate.to("/profile"))
-                    ui.menu_item("Einstellungen", on_click=lambda: ui.navigate.to("/config"))
+                    ui.menu_item("Einstellungen", on_click=lambda: ui.navigate.to("/settings"))
+                    ui.menu_item("Roadmap", on_click=lambda: ui.navigate.to("/roadmap"))
                     ui.separator()
                     ui.menu_item("Abmelden", on_click=_confirm_logout).style("color:#EF4444")
 
@@ -590,245 +570,64 @@ def build_layout() -> None:
 
     app.on_connect(_maybe_show_update)
 
-    # ---- Unified Chat (kombinierter Archiv- und Such-Chat) ----
+    # =====================================================================
+    # Kern-Routen: Input → Output → Profil
+    # =====================================================================
+
+    def _content(active: str):
+        """Standard-Shell fuer alle Kern-Seiten: Header + zentrierter Container."""
+        inject_theme()
+        enable_scroll()
+        _header(active=active)
+        return ui.column().classes(
+            "w-full px-6 py-8 mx-auto ds-animate-in"
+        ).style("max-width:1200px;padding-top:80px")
+
+    # ---- "/" → Login-Check + Redirect ----
 
     @ui.page("/")
-    def page_search() -> None:
-        global _right_panel_ref, _backdrop_ref
-
+    def page_root() -> None:
         if wizard.is_first_run() or not wizard.is_logged_in():
             ui.navigate.to("/landing")
             return
+        ui.navigate.to("/input")
 
-        inject_theme()
-        archive_agent = _get_archive_agent()
-        _header()
+    # ---- Input ----
 
-        _backdrop_ref = ui.element("div").classes("ds-backdrop")
-        _backdrop_ref.on("click", _close_all_panels)
-
-        _right_panel_ref = None
-        with ui.element("div").classes("ds-3panel"):
-            _left_panel(archive_agent, current_route="/")
-            with ui.column().classes("ds-center-panel"):
-                unified_chat_page.build(archive_agent)
-
-    # ---- /archive-chat → Weiterleitung zum Unified Chat ----
-
-    @ui.page("/archive-chat")
-    def page_archive_chat() -> None:
-        ui.navigate.to("/")
-
-    # ---- Einstellungen (einzige klassische Seite) ----
-
-    @ui.page("/config")
-    def page_config() -> None:
-        inject_theme()
-        enable_scroll()
-        _header()
-        _classic_sidebar("/config")
-        with ui.column().classes("w-full p-6 pt-20 max-w-7xl mx-auto ds-animate-in"):
-            config_editor.build()
-
-    # ---- Landing Page ----
-
-    @ui.page("/landing")
-    def page_landing() -> None:
-        if not wizard.is_first_run() and wizard.is_logged_in():
-            ui.navigate.to("/")
+    @ui.page("/input")
+    def page_input() -> None:
+        if wizard.is_first_run() or not wizard.is_logged_in():
+            ui.navigate.to("/landing")
             return
-        inject_theme()
-        landing.build()
+        with _content("/input"):
+            input_page.build()
 
-    # ---- Login (Alias → Landing) ----
+    # ---- Output ----
 
-    @ui.page("/login")
-    def page_login() -> None:
-        ui.navigate.to("/landing")
-
-    # ---- Logout ----
-
-    @ui.page("/logout")
-    def page_logout() -> None:
-        app.storage.user["logged_in"] = False
-        app.storage.user.pop("username", None)
-        ui.navigate.to("/landing")
-
-    # ---- Dateien & History (ehemals rechtes Panel) ----
-
-    @ui.page("/dateien")
-    def page_dateien() -> None:
+    @ui.page("/output")
+    def page_output() -> None:
         if not wizard.is_logged_in():
             ui.navigate.to("/landing")
             return
-        inject_theme()
-        enable_scroll()
-        _header()
-        _classic_sidebar("/dateien")
-        with ui.column().classes("w-full p-6 pt-20 max-w-7xl mx-auto ds-animate-in"):
-            archiv_info_page.build()
+        with _content("/output"):
+            output_page.build()
 
-    # ---- /files → Weiterleitung zu /dateien (Seiten zusammengeführt) ----
+    # ---- Einstellungen (neu, ueber Profil-Dropdown) ----
 
-    @ui.page("/files")
-    def page_files() -> None:
-        ui.navigate.to("/dateien")
-
-    # ---- Assistent ----
-
-    @ui.page("/assistant")
-    def page_assistant() -> None:
-        global _right_panel_ref, _backdrop_ref
+    @ui.page("/settings")
+    def page_settings() -> None:
         if not wizard.is_logged_in():
             ui.navigate.to("/landing")
             return
-        inject_theme()
-        enable_scroll()
-        agent = _get_session_agent()
-        _header()
-        _backdrop_ref = ui.element("div").classes("ds-backdrop")
-        _backdrop_ref.on("click", _close_all_panels)
-        _right_panel_ref = None
-        with ui.element("div").classes("ds-3panel"):
-            _left_panel(agent, current_route="/assistant")
-            with ui.column().classes("ds-center-panel"):
-                assistant_page.build()
+        with _content(""):
+            settings.build()
 
-    # ---- E-Mail Manager ----
+    # ---- Roadmap ----
 
-    @ui.page("/email")
-    def page_email() -> None:
-        if not wizard.is_logged_in():
-            ui.navigate.to("/landing")
-            return
-        inject_theme()
-        enable_scroll()
-        _header()
-        _classic_sidebar("/email")
-        with ui.column().classes("w-full p-6 pt-20 max-w-7xl mx-auto ds-animate-in"):
-            email_manager_page.build()
-
-    # ---- Nachtarbeiter / Scheduler ----
-
-    @ui.page("/scheduler")
-    def page_scheduler() -> None:
-        if not wizard.is_logged_in():
-            ui.navigate.to("/landing")
-            return
-        inject_theme()
-        enable_scroll()
-        _header()
-        _classic_sidebar("/scheduler")
-        with ui.column().classes("w-full p-6 pt-20 max-w-7xl mx-auto ds-animate-in"):
-            scheduler_page.build()
-
-    # ---- Kalender ----
-
-    @ui.page("/timeline")
-    def page_timeline() -> None:
-        global _right_panel_ref, _backdrop_ref
-        if not wizard.is_logged_in():
-            ui.navigate.to("/landing")
-            return
-        inject_theme()
-        enable_scroll()
-        agent = _get_session_agent()
-        _header()
-        _backdrop_ref = ui.element("div").classes("ds-backdrop")
-        _backdrop_ref.on("click", _close_all_panels)
-        _right_panel_ref = None
-        with ui.element("div").classes("ds-3panel"):
-            _left_panel(agent, current_route="/timeline")
-            with ui.column().classes("ds-center-panel"):
-                timeline_page.build()
-
-    @ui.page("/calendar")
-    def page_calendar() -> None:
-        global _right_panel_ref, _backdrop_ref
-        if not wizard.is_logged_in():
-            ui.navigate.to("/landing")
-            return
-        inject_theme()
-        enable_scroll()
-        agent = _get_session_agent()
-        _header()
-        _backdrop_ref = ui.element("div").classes("ds-backdrop")
-        _backdrop_ref.on("click", _close_all_panels)
-        _right_panel_ref = None
-        with ui.element("div").classes("ds-3panel"):
-            _left_panel(agent, current_route="/calendar")
-            with ui.column().classes("ds-center-panel"):
-                calendar_page.build()
-
-    # ---- Schlagwörter ----
-
-    @ui.page("/keywords")
-    def page_keywords() -> None:
-        if not wizard.is_logged_in():
-            ui.navigate.to("/landing")
-            return
-        inject_theme()
-        enable_scroll()
-        _header()
-        _classic_sidebar("/keywords")
-        with ui.column().classes("w-full p-6 pt-20 max-w-7xl mx-auto ds-animate-in"):
-            keywords_hub_page.build()
-
-    # ---- Finanzen ----
-
-    @ui.page("/finance")
-    def page_finance() -> None:
-        if not wizard.is_logged_in():
-            ui.navigate.to("/landing")
-            return
-        inject_theme()
-        enable_scroll()
-        _header()
-        _classic_sidebar("/finance")
-        with ui.column().classes("w-full p-6 pt-20 max-w-7xl mx-auto ds-animate-in"):
-            finance_page.build()
-
-    # ---- Bank & CSV-Import ----
-
-    @ui.page("/bank")
-    def page_bank() -> None:
-        if not wizard.is_logged_in():
-            ui.navigate.to("/landing")
-            return
-        inject_theme()
-        enable_scroll()
-        _header()
-        _classic_sidebar("/bank")
-        with ui.column().classes("w-full p-6 pt-20 max-w-7xl mx-auto ds-animate-in"):
-            bank_page.build()
-
-    # ---- Messenger (WhatsApp / Telegram / Signal) ----
-
-    @ui.page("/messenger")
-    def page_messenger() -> None:
-        if not wizard.is_logged_in():
-            ui.navigate.to("/landing")
-            return
-        inject_theme()
-        enable_scroll()
-        _header()
-        _classic_sidebar("/messenger")
-        with ui.column().classes("w-full p-6 pt-20 max-w-7xl mx-auto ds-animate-in"):
-            messenger_page.build()
-
-    # ---- Ordner-Browser ----
-
-    @ui.page("/folders")
-    def page_folders() -> None:
-        if not wizard.is_logged_in():
-            ui.navigate.to("/landing")
-            return
-        inject_theme()
-        enable_scroll()
-        _header()
-        _classic_sidebar("/folders")
-        with ui.column().classes("w-full p-6 pt-20 max-w-7xl mx-auto ds-animate-in"):
-            folders_page.build()
+    @ui.page("/roadmap")
+    def page_roadmap() -> None:
+        with _content(""):
+            roadmap.build()
 
     # ---- Profil ----
 
@@ -837,55 +636,67 @@ def build_layout() -> None:
         if not wizard.is_logged_in():
             ui.navigate.to("/landing")
             return
-        inject_theme()
-        enable_scroll()
-        _header()
-        _classic_sidebar("/profile")
-        with ui.column().classes("w-full p-6 pt-20 max-w-7xl mx-auto ds-animate-in"):
+        with _content(""):
             profile_page.build()
 
-    # ---- Wizard (Ersteinrichtung / Registrierung) ----
+    # ---- Landing ----
+
+    @ui.page("/landing")
+    def page_landing() -> None:
+        if not wizard.is_first_run() and wizard.is_logged_in():
+            ui.navigate.to("/input")
+            return
+        inject_theme()
+        landing.build()
+
+    @ui.page("/login")
+    def page_login() -> None:
+        ui.navigate.to("/landing")
+
+    @ui.page("/logout")
+    def page_logout() -> None:
+        app.storage.user["logged_in"] = False
+        app.storage.user.pop("username", None)
+        ui.navigate.to("/landing")
+
+    # ---- Wizard (Ersteinrichtung) — Fullscreen, kein Header/Sidebar ----
 
     @ui.page("/wizard")
     def page_wizard() -> None:
         inject_theme()
-        _header()
-        drawer = ui.left_drawer(value=True, bordered=False).classes("ds-sidebar").props("width=260 behavior=desktop")
-        with drawer:
-            _classic_nav_group("", [("Chat", "/", "chat_bubble", None)], "/wizard")
-        with ui.column().classes("w-full p-6 pt-20 max-w-7xl mx-auto ds-animate-in"):
+        enable_scroll()
+        with ui.column().classes("w-full mx-auto ds-animate-in").style(
+            "max-width:1200px;padding:32px 24px"
+        ):
             wizard.build()
 
-    # ---- Legacy-Redirects → Chat ----
+    # =====================================================================
+    # Interne / verlinkte Seiten (nicht in Hauptnavigation)
+    # =====================================================================
 
-    @ui.page("/analytics")
-    def page_analytics_redirect() -> None:
-        ui.navigate.to("/")
+    # Legacy YAML-Editor (verlinkt aus Settings → "Erweiterte Konfiguration")
+    @ui.page("/config")
+    def page_config() -> None:
+        if not wizard.is_logged_in():
+            ui.navigate.to("/landing")
+            return
+        with _content(""):
+            config_editor.build()
 
-    @ui.page("/review")
-    def page_review_redirect() -> None:
-        ui.navigate.to("/")
+    # Schlagwoerter-Hub (verlinkt aus Settings)
+    @ui.page("/keywords")
+    def page_keywords() -> None:
+        if not wizard.is_logged_in():
+            ui.navigate.to("/landing")
+            return
+        with _content(""):
+            keywords_hub_page.build()
 
-    @ui.page("/history")
-    def page_history_redirect() -> None:
-        ui.navigate.to("/")
-
+    # System-Status (verlinkt aus Settings)
     @ui.page("/system")
     def page_system() -> None:
         if not wizard.is_logged_in():
             ui.navigate.to("/landing")
             return
-        inject_theme()
-        enable_scroll()
-        _header()
-        _classic_sidebar("/system")
-        with ui.column().classes("w-full p-6 pt-20 max-w-7xl mx-auto ds-animate-in"):
+        with _content(""):
             system_page.build()
-
-    @ui.page("/terminal")
-    def page_terminal_redirect() -> None:
-        ui.navigate.to("/")
-
-    @ui.page("/overview")
-    def page_overview_redirect() -> None:
-        ui.navigate.to("/")
