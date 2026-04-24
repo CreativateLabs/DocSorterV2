@@ -589,17 +589,26 @@ def build() -> None:
 
             _refresh_dt()
 
-            # Add new doc type
+            # Add new doc type — Select mit Presets, Freitext via with_input
             ui.html('<div style="height:12px"></div>', sanitize=False)
+            _DOCTYPE_PRESETS = [
+                "rechnung", "vertrag", "angebot", "mahnung", "brief", "bericht",
+                "protokoll", "kontoauszug", "auftrag", "lieferschein", "abnahme",
+                "schriftsatz", "gutachten", "urteil", "korrespondenz", "vollmacht",
+                "beleg", "steuerbescheid", "jahresabschluss", "lohnabrechnung",
+                "plan", "sonstiges",
+            ]
             with ui.row().classes("items-center gap-2 w-full"):
-                dt_inp = ui.input(
+                dt_inp = ui.select(
+                    options=_DOCTYPE_PRESETS,
                     label="Neue Dokumentenart",
-                    placeholder="z.B. rechnung, vertrag, mahnung …"
-                ).classes("flex-1 ds-input").props("outlined dense")
+                    with_input=True,
+                    new_value_mode="add-unique",
+                ).classes("flex-1 ds-input").props("outlined dense use-input hide-selected fill-input")
 
                 async def _add_dt() -> None:
                     from .config_editor import _lookup_keywords
-                    n = dt_inp.value.strip().lower()
+                    n = (dt_inp.value or "").strip().lower()
                     if not n:
                         return
                     if n in doc_types:
@@ -607,11 +616,10 @@ def build() -> None:
                         return
                     found = _lookup_keywords(n)
                     doc_types[n] = found if found else {"keywords_de": [n], "keywords_en": [], "keywords_sq": []}
-                    dt_inp.value = ""
+                    dt_inp.value = None
                     _refresh_dt()
                     ui.notify(f'"{n}" hinzugefügt' + (" mit Vorschlägen" if found else ""), type="positive")
 
-                dt_inp.on("keydown.enter", _add_dt)
                 ui.button(icon="add", on_click=_add_dt).props("round dense unelevated").style(
                     "background:rgba(0,212,255,0.12);color:#00d4ff;min-width:36px;min-height:36px"
                 )
@@ -696,24 +704,31 @@ def build() -> None:
             _refresh_countries()
 
             ui.html('<div style="height:12px"></div>', sanitize=False)
+            _COUNTRY_PRESETS = [
+                "deutschland", "oesterreich", "schweiz", "kosovo", "albanien",
+                "italien", "frankreich", "niederlande", "belgien", "polen",
+                "tschechien", "spanien", "portugal", "grossbritannien", "irland",
+                "schweden", "norwegen", "daenemark", "tuerkei", "usa", "kanada",
+            ]
             with ui.row().classes("items-center gap-2 w-full"):
-                ctry_inp = ui.input(
+                ctry_inp = ui.select(
+                    options=_COUNTRY_PRESETS,
                     label="Land hinzufügen",
-                    placeholder="z.B. deutschland, schweiz, kosovo …"
-                ).classes("flex-1 ds-input").props("outlined dense")
+                    with_input=True,
+                    new_value_mode="add-unique",
+                ).classes("flex-1 ds-input").props("outlined dense use-input hide-selected fill-input")
 
                 def _add_country() -> None:
-                    n = ctry_inp.value.strip().lower()
+                    n = (ctry_inp.value or "").strip().lower()
                     if not n:
                         return
                     if n in countries:
                         ui.notify(f'"{n}" existiert bereits', type="warning")
                         return
                     countries[n] = {"keywords": [n]}
-                    ctry_inp.value = ""
+                    ctry_inp.value = None
                     _refresh_countries()
 
-                ctry_inp.on("keydown.enter", _add_country)
                 ui.button(icon="add", on_click=_add_country).props("round dense unelevated").style(
                     "background:rgba(0,232,125,0.12);color:#00e87d;min-width:36px;min-height:36px"
                 )
@@ -1318,7 +1333,7 @@ def build() -> None:
                     app.storage.user["logged_in"] = True
                     app.storage.user["username"] = username
                 ui.notify("Einrichtung abgeschlossen! Einstellungen gespeichert.", type="positive")
-                ui.navigate.to("/")
+                ui.navigate.to("/input")
 
             with ui.card().classes("ds-card w-full mt-4"):
                 section_title("Naechste Schritte", "rocket_launch")
