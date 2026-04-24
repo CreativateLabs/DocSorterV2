@@ -483,7 +483,7 @@
           <span class="included-badge">Tesseract inklusive</span>
         </div>
 
-        <a id="dl-mac-arm" href="https://doc-sorter-app.netlify.app/downloads/DocSorter-0.6.7-mac-arm64.dmg"
+        <a id="dl-mac-arm" href="https://doc-sorter-app.netlify.app/downloads/DocSorter-2.0.0-mac-arm64.dmg"
            class="btn btn-mac" style="width:100%;justify-content:center"
            onclick="trackDownload('mac-arm64')">
           <span>⬇️</span>
@@ -509,7 +509,7 @@
           <span class="included-badge">Tesseract inklusive</span>
         </div>
 
-        <a id="dl-win" href="https://doc-sorter-app.netlify.app/downloads/DocSorter-Setup-0.6.7.exe"
+        <a id="dl-win" href="https://doc-sorter-app.netlify.app/downloads/DocSorter-Setup-2.0.0.exe"
            class="btn btn-win" style="width:100%;justify-content:center"
            onclick="trackDownload('win')">
           <span>⬇️</span>
@@ -708,11 +708,11 @@
 // Nie mehr hardcodiert — version.json wird bei jedem Release aktualisiert.
 // Fallback-Werte — nur aktiv wenn /version.json nicht erreichbar ist.
 // Werden bei jedem Release per CI auf die aktuelle Version gesetzt.
-let VERSION = '0.6.7';
+let VERSION = '2.0.0';
 let URLS = {
-  'mac-arm64': '/downloads/DocSorter-0.6.7-mac-arm64.dmg',
+  'mac-arm64': '/downloads/DocSorter-2.0.0-mac-arm64.dmg',
   // 'mac-intel': nicht verfügbar — Intel-Build noch ausstehend
-  'win':       '/downloads/DocSorter-Setup-0.6.7.exe',
+  'win':       '/downloads/DocSorter-Setup-2.0.0.exe',
 };
 
 // version.json laden (liegt auf demselben Netlify-Server)

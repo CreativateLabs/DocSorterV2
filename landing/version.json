@@ -1,12 +1,12 @@
 {
-  "version": "0.6.7",
+  "version": "2.0.0",
   "downloads": {
-    "mac-arm64": "/downloads/DocSorter-0.6.7-mac-arm64.dmg",
-    "win": "/downloads/DocSorter-Setup-0.6.7.exe"
+    "mac-arm64": "/downloads/DocSorter-2.0.0-mac-arm64.dmg",
+    "win": "/downloads/DocSorter-Setup-2.0.0.exe"
   },
   "checksums": {
-    "mac-arm64": "6564fe3152d651d772627e310aa254b2fd1f8b5b95c074ecafbf8f8821124ec4",
-    "win": "e41360c1d5aef187f77142c28a29a47e677a194aa24f72f35e36f275c20da7dd"
+    "mac-arm64": "05ed67844d09407524829f484d592884374c3ba207798e3919ee406c8f9a9580",
+    "win": "fec4ca4c040fd5546be65810d9dd712f661dcc170302d9a68ef7d71e9267540a"
   },
-  "release_notes": "Automatisches Release v0.6.7"
+  "release_notes": "Automatisches Release v2.0.0"
 }
