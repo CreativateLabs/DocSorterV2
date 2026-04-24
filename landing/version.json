@@ -1,12 +1,12 @@
 {
-  "version": "2.0.0",
+  "version": "2.0.1",
   "downloads": {
-    "mac-arm64": "/downloads/DocSorter-2.0.0-mac-arm64.dmg",
-    "win": "/downloads/DocSorter-Setup-2.0.0.exe"
+    "mac-arm64": "/downloads/DocSorter-2.0.1-mac-arm64.dmg",
+    "win": "/downloads/DocSorter-Setup-2.0.1.exe"
   },
   "checksums": {
-    "mac-arm64": "05ed67844d09407524829f484d592884374c3ba207798e3919ee406c8f9a9580",
-    "win": "fec4ca4c040fd5546be65810d9dd712f661dcc170302d9a68ef7d71e9267540a"
+    "mac-arm64": "94aa39bc734b35b195345efc09b983c945ad5e4e5bf8b11c68e1605c74c31406",
+    "win": "9dab50be207faed97557bd76f72277a10927c54945d8edf98dbafb3d52936f36"
   },
-  "release_notes": "Automatisches Release v2.0.0"
+  "release_notes": "v2.0.1 — V2-Datenverzeichnis von V1 trennen (DocSorter -> DocSorterV2)"
 }

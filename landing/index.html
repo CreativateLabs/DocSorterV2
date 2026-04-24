@@ -276,7 +276,7 @@
 <section class="hero">
   <div class="glow"></div>
   <div class="wrap">
-    <div class="hero-eyebrow">✨ &nbsp; Neu in v2.0: Schlanker Fokus — Input → Struktur → Output</div>
+    <div class="hero-eyebrow">✨ &nbsp; Neu in v2.0.1: Schlanker Fokus — Input → Struktur → Output</div>
     <h1>Deine Dokumente.<br>Endlich in Ordnung.</h1>
     <p class="hero-sub">
       Doc-Sorter erkennt, benennt und sortiert deine PDFs, Rechnungen und Fotos automatisch —
@@ -322,7 +322,7 @@
         <div class="dot" style="background:#f59e0b"></div>
         <div class="dot" style="background:#22c55e"></div>
         <div style="flex:1;text-align:center;font-size:.7rem;color:var(--text3);font-weight:600">
-          Doc-Sorter v<span class="version-num">2.0.0</span>
+          Doc-Sorter v<span class="version-num">2.0.1</span>
         </div>
       </div>
       <div class="mock-body">
@@ -483,7 +483,7 @@
           <span class="included-badge">Tesseract inklusive</span>
         </div>
 
-        <a id="dl-mac-arm" href="https://doc-sorter-app.netlify.app/downloads/DocSorter-2.0.0-mac-arm64.dmg"
+        <a id="dl-mac-arm" href="https://doc-sorter-app.netlify.app/downloads/DocSorter-2.0.1-mac-arm64.dmg"
            class="btn btn-mac" style="width:100%;justify-content:center"
            onclick="trackDownload('mac-arm64')">
           <span>⬇️</span>
@@ -509,7 +509,7 @@
           <span class="included-badge">Tesseract inklusive</span>
         </div>
 
-        <a id="dl-win" href="https://doc-sorter-app.netlify.app/downloads/DocSorter-Setup-2.0.0.exe"
+        <a id="dl-win" href="https://doc-sorter-app.netlify.app/downloads/DocSorter-Setup-2.0.1.exe"
            class="btn btn-win" style="width:100%;justify-content:center"
            onclick="trackDownload('win')">
           <span>⬇️</span>
@@ -708,11 +708,11 @@
 // Nie mehr hardcodiert — version.json wird bei jedem Release aktualisiert.
 // Fallback-Werte — nur aktiv wenn /version.json nicht erreichbar ist.
 // Werden bei jedem Release per CI auf die aktuelle Version gesetzt.
-let VERSION = '2.0.0';
+let VERSION = '2.0.1';
 let URLS = {
-  'mac-arm64': '/downloads/DocSorter-2.0.0-mac-arm64.dmg',
+  'mac-arm64': '/downloads/DocSorter-2.0.1-mac-arm64.dmg',
   // 'mac-intel': nicht verfügbar — Intel-Build noch ausstehend
-  'win':       '/downloads/DocSorter-Setup-2.0.0.exe',
+  'win':       '/downloads/DocSorter-Setup-2.0.1.exe',
 };
 
 // version.json laden (liegt auf demselben Netlify-Server)
