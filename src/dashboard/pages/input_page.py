@@ -234,9 +234,9 @@ def build() -> None:
         for idx, item in enumerate(proposals):
             confidence = item["classification"].confidence
             conf_color = (
-                "#00e87d" if confidence >= 0.7
-                else "#ff9f0a" if confidence >= 0.4
-                else "#ff3366"
+                "#10b981" if confidence >= 0.7
+                else "#f59e0b" if confidence >= 0.4
+                else "#ef4444"
             )
             with ui.element("div").style(
                 "border:1px solid var(--ds-border);border-radius:10px;"

@@ -75,12 +75,12 @@ def build() -> None:
     # ── Verfuegbar jetzt ──
     section_title("Verfuegbar jetzt", "check_circle")
     with ui.column().classes("w-full gap-2").style("margin-bottom:28px"):
-        _render_items(_AVAILABLE, "#00e87d", "Live")
+        _render_items(_AVAILABLE, "#10b981", "Live")
 
     # ── Naechste Version ──
     section_title("Naechste Version", "schedule")
     with ui.column().classes("w-full gap-2").style("margin-bottom:28px"):
-        _render_items(_COMING, "#ff9f0a", "Geplant")
+        _render_items(_COMING, "#f59e0b", "Geplant")
 
     # ── Spaeter ──
     section_title("Spaeter", "lightbulb")

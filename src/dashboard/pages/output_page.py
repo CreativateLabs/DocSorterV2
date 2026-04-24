@@ -151,11 +151,11 @@ def run_worker(run_id: str, pending: dict) -> None:
 # ---------------------------------------------------------------------------
 
 _STATUS_VARIANT = {
-    "running":          ("warning", "In Arbeit", "#ff9f0a"),
-    "done":             ("success", "Fertig",    "#00e87d"),
-    "done_with_errors": ("error",   "Mit Fehlern", "#ff3366"),
-    "pending":          ("neutral", "Wartet",    "#94a3b8"),
-    "failed":           ("error",   "Fehlgeschlagen", "#ff3366"),
+    "running":          ("warning", "In Arbeit",      "#f59e0b"),
+    "done":             ("success", "Fertig",         "#10b981"),
+    "done_with_errors": ("error",   "Mit Fehlern",    "#ef4444"),
+    "pending":          ("neutral", "Wartet",         "#94a3b8"),
+    "failed":           ("error",   "Fehlgeschlagen", "#ef4444"),
 }
 
 
@@ -260,7 +260,7 @@ def build() -> None:
                     # Tabelle: original_name -> dst (Fehler in rot)
                     for f in files:
                         ok = f.get("ok", False)
-                        line_color = "#00e87d" if ok else "#ff3366"
+                        line_color = "#10b981" if ok else "#ef4444"
                         with ui.row().classes("w-full items-center gap-2").style(
                             "padding:6px 10px;border-bottom:1px solid var(--ds-border);"
                             f"border-left:2px solid {line_color}"
@@ -285,7 +285,7 @@ def build() -> None:
                                     ui.label(
                                         f.get("err", "Unbekannter Fehler")
                                     ).style(
-                                        "font-size:0.72rem;color:#ff3366"
+                                        "font-size:0.72rem;color:#ef4444"
                                     )
 
     # Initial-Render + Polling

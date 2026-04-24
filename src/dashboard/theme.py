@@ -58,12 +58,16 @@ _ICON_BG = {
     "cyan":   ("background:rgba(0,212,255,0.10);color:#00d4ff", "background:rgba(0,212,255,0.15);color:#00d4ff"),
 }
 
-# Badge-Farben: (bg, text)
+# Badge-Farben: (bg, text) — Status-Badges fuer Runs/Vorschlaege.
+# Konsolidierte Ampelfarben (Tailwind-inspiriert):
+#   gruen  = #10b981 (emerald-500)  -> done / erfolgreich
+#   gelb   = #f59e0b (amber-500)    -> in Arbeit
+#   rot    = #ef4444 (red-500)      -> Fehler
 _BADGE_COLORS = {
-    "success": ("rgba(0,232,125,0.15)", "#00e87d"),
-    "warning": ("rgba(255,159,10,0.15)", "#ff9f0a"),
-    "error":   ("rgba(255,51,102,0.15)", "#ff3366"),
-    "info":    ("rgba(0,212,255,0.15)", "#00d4ff"),
+    "success": ("rgba(16,185,129,0.15)",  "#10b981"),
+    "warning": ("rgba(245,158,11,0.15)",  "#f59e0b"),
+    "error":   ("rgba(239,68,68,0.15)",   "#ef4444"),
+    "info":    ("rgba(0,212,255,0.15)",   "#00d4ff"),
     "neutral": ("rgba(148,163,184,0.12)", "#94a3b8"),
 }
 
