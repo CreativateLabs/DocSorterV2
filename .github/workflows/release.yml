@@ -287,7 +287,10 @@ jobs:
         id: ver
         run: echo "version=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
 
-      - name: Release-Assets von GitHub Release herunterladen
+      - name: Release-Assets herunterladen (nur fuer Checksum-Berechnung)
+        # Binaries werden NICHT mehr ins landing/downloads/ kopiert — sie werden
+        # direkt von GitHub Releases geladen (kostenloses, unlimited Hosting).
+        # Wir brauchen sie nur lokal fuer die SHA256-Berechnung.
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -299,68 +302,69 @@ jobs:
             --pattern "*.exe"
           ls -lh release-assets/
 
-      - name: Alte Binaries ersetzen
-        run: |
-          V="${{ steps.ver.outputs.version }}"
-          mkdir -p landing/downloads
-
-          # Alle alten .dmg / .exe löschen (nur die aktuelle Version bleibt)
-          find landing/downloads -maxdepth 1 -type f \( -name "*.dmg" -o -name "*.exe" \) -delete
-
-          # Neue Binaries einkopieren
-          cp release-assets/DocSorter-${V}-mac-arm64.dmg    landing/downloads/ 2>/dev/null || true
-          # Intel-DMG wird nicht mehr gebaut — Rosetta 2 übernimmt auf Intel Macs
-          cp release-assets/DocSorter-Setup-${V}.exe        landing/downloads/ 2>/dev/null || true
-
-          ls -lh landing/downloads/
-
       - name: Checksums berechnen
         id: sums
         run: |
           V="${{ steps.ver.outputs.version }}"
-          ARM_SHA=$(sha256sum "landing/downloads/DocSorter-${V}-mac-arm64.dmg" 2>/dev/null | cut -d' ' -f1 || echo "")
-          WIN_SHA=$(sha256sum "landing/downloads/DocSorter-Setup-${V}.exe"      2>/dev/null | cut -d' ' -f1 || echo "")
+          ARM_SHA=$(sha256sum "release-assets/DocSorter-${V}-mac-arm64.dmg" 2>/dev/null | cut -d' ' -f1 || echo "")
+          WIN_SHA=$(sha256sum "release-assets/DocSorter-Setup-${V}.exe"      2>/dev/null | cut -d' ' -f1 || echo "")
           echo "arm=$ARM_SHA" >> $GITHUB_OUTPUT
           echo "win=$WIN_SHA" >> $GITHUB_OUTPUT
 
-      - name: Fallback-URLs in index.html aktualisieren
-        # Die JS-Logik lädt primär /version.json (immer aktuell).
-        # Die hardcodierten Fallback-Werte sind nur aktiv, wenn version.json
-        # nicht erreichbar ist — trotzdem halten wir sie synchron, damit
-        # niemals ein 404 auf nicht mehr existierende Versionen zeigt.
+      - name: Fallback-URLs in index.html auf GitHub Release setzen
+        # Die JS-Logik laedt primaer /version.json. Die hardcodierten Fallback-
+        # URLs zeigen direkt auf GitHub Releases, damit die Landing-Page
+        # bandwidth-frei bleibt (Landing-Host liefert nur HTML/CSS/JS aus).
         run: |
           V="${{ steps.ver.outputs.version }}"
+          REPO="${{ github.repository }}"
           python3 <<PY
           import re
           from pathlib import Path
+          v = "$V"
+          repo = "$REPO"
+          base = f"https://github.com/{repo}/releases/download/v{v}"
           p = Path("landing/index.html")
           s = p.read_text(encoding="utf-8")
-          s = re.sub(r"DocSorter-\d+\.\d+\.\d+-mac-arm64\.dmg",
-                     f"DocSorter-$V-mac-arm64.dmg", s)
-          s = re.sub(r"DocSorter-Setup-\d+\.\d+\.\d+\.exe",
-                     f"DocSorter-Setup-$V.exe", s)
+          # Absolute GitHub-URLs setzen (egal ob alte relative oder alte Netlify-URL)
+          s = re.sub(
+              r'href="[^"]*DocSorter-\d+\.\d+\.\d+-mac-arm64\.dmg"',
+              f'href="{base}/DocSorter-{v}-mac-arm64.dmg"', s)
+          s = re.sub(
+              r'href="[^"]*DocSorter-Setup-\d+\.\d+\.\d+\.exe"',
+              f'href="{base}/DocSorter-Setup-{v}.exe"', s)
+          # JS-URLS-Konstante
+          s = re.sub(
+              r"'mac-arm64':\s*'[^']*DocSorter-\d+\.\d+\.\d+-mac-arm64\.dmg'",
+              f"'mac-arm64': '{base}/DocSorter-{v}-mac-arm64.dmg'", s)
+          s = re.sub(
+              r"'win':\s*'[^']*DocSorter-Setup-\d+\.\d+\.\d+\.exe'",
+              f"'win':       '{base}/DocSorter-Setup-{v}.exe'", s)
           s = re.sub(r"let VERSION = '\d+\.\d+\.\d+';",
-                     f"let VERSION = '$V';", s)
+                     f"let VERSION = '{v}';", s)
           p.write_text(s, encoding="utf-8")
-          print("index.html fallback-URLs auf $V aktualisiert")
+          print(f"index.html URLs auf GitHub Release v{v} gehoben")
           PY
 
-      - name: version.json aktualisieren
+      - name: version.json aktualisieren (GitHub Release URLs)
         run: |
           V="${{ steps.ver.outputs.version }}"
+          REPO="${{ github.repository }}"
           python3 <<PY
           import json, os
-          v   = "$V"
-          arm = "${{ steps.sums.outputs.arm }}"
-          win = "${{ steps.sums.outputs.win }}"
+          v    = "$V"
+          repo = "$REPO"
+          arm  = "${{ steps.sums.outputs.arm }}"
+          win  = "${{ steps.sums.outputs.win }}"
+          base = f"https://github.com/{repo}/releases/download/v{v}"
 
           downloads = {}
           checksums = {}
           if arm:
-              downloads["mac-arm64"] = f"/downloads/DocSorter-{v}-mac-arm64.dmg"
+              downloads["mac-arm64"] = f"{base}/DocSorter-{v}-mac-arm64.dmg"
               checksums["mac-arm64"] = arm
           if win:
-              downloads["win"] = f"/downloads/DocSorter-Setup-{v}.exe"
+              downloads["win"] = f"{base}/DocSorter-Setup-{v}.exe"
               checksums["win"] = win
 
           data = {
@@ -368,6 +372,7 @@ jobs:
               "downloads": downloads,
               "checksums": checksums,
               "release_notes": os.environ.get("RELEASE_NOTES", f"Doc-Sorter v{v}"),
+              "source": "github_releases",
           }
           with open("landing/version.json", "w", encoding="utf-8") as f:
               json.dump(data, f, ensure_ascii=False, indent=2)
@@ -382,10 +387,10 @@ jobs:
           V="${{ steps.ver.outputs.version }}"
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add landing/version.json landing/downloads/ landing/index.html
+          git add landing/version.json landing/index.html
           if git diff --cached --quiet; then
             echo "Keine Änderungen an der Landing-Page."
             exit 0
           fi
-          git commit -m "release: Landing-Page auf v${V} (Binaries + version.json)"
+          git commit -m "release: Landing-Page auf v${V} (version.json + GitHub-Release-URLs)"
           git push origin main

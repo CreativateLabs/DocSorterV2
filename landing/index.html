@@ -483,7 +483,7 @@
           <span class="included-badge">Tesseract inklusive</span>
         </div>
 
-        <a id="dl-mac-arm" href="https://doc-sorter-app.netlify.app/downloads/DocSorter-2.0.1-mac-arm64.dmg"
+        <a id="dl-mac-arm" href="https://github.com/ninoborn1-stack/DocSorterV2/releases/download/v2.0.1/DocSorter-2.0.1-mac-arm64.dmg"
            class="btn btn-mac" style="width:100%;justify-content:center"
            onclick="trackDownload('mac-arm64')">
           <span>⬇️</span>
@@ -509,7 +509,7 @@
           <span class="included-badge">Tesseract inklusive</span>
         </div>
 
-        <a id="dl-win" href="https://doc-sorter-app.netlify.app/downloads/DocSorter-Setup-2.0.1.exe"
+        <a id="dl-win" href="https://github.com/ninoborn1-stack/DocSorterV2/releases/download/v2.0.1/DocSorter-Setup-2.0.1.exe"
            class="btn btn-win" style="width:100%;justify-content:center"
            onclick="trackDownload('win')">
           <span>⬇️</span>
@@ -710,9 +710,9 @@
 // Werden bei jedem Release per CI auf die aktuelle Version gesetzt.
 let VERSION = '2.0.1';
 let URLS = {
-  'mac-arm64': '/downloads/DocSorter-2.0.1-mac-arm64.dmg',
-  // 'mac-intel': nicht verfügbar — Intel-Build noch ausstehend
-  'win':       '/downloads/DocSorter-Setup-2.0.1.exe',
+  'mac-arm64': 'https://github.com/ninoborn1-stack/DocSorterV2/releases/download/v2.0.1/DocSorter-2.0.1-mac-arm64.dmg',
+  // 'mac-intel': nicht verfügbar — Rosetta 2 übernimmt auf Intel Macs
+  'win':       'https://github.com/ninoborn1-stack/DocSorterV2/releases/download/v2.0.1/DocSorter-Setup-2.0.1.exe',
 };
 
 // version.json laden (liegt auf demselben Netlify-Server)
