@@ -22,7 +22,29 @@ def _resolve_default_config_path() -> Path:
         pass
     return Path(__file__).resolve().parent.parent / "config.yaml"  # Dev-Modus
 
+
+def _bootstrap_config_if_missing(config_path: Path) -> None:
+    """Erzeugt config.yaml aus config.default.yaml wenn sie fehlt.
+
+    Erleichtert Fresh-Clone-Setup (Dev- und First-Run-Fall). Still falls die
+    Default-Vorlage nicht existiert — dann greift der normale Not-Found-Fehler.
+    """
+    if config_path.exists():
+        return
+    default_path = config_path.parent / "config.default.yaml"
+    if not default_path.exists():
+        return
+    try:
+        import shutil
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(default_path, config_path)
+        logger.info("config.yaml aus config.default.yaml erzeugt: %s", config_path)
+    except OSError as exc:
+        logger.warning("Konnte config.yaml nicht bootstrapen: %s", exc)
+
+
 DEFAULT_CONFIG_PATH = _resolve_default_config_path()
+_bootstrap_config_if_missing(DEFAULT_CONFIG_PATH)
 
 # Pflicht-Sektionen und ihre Defaults
 _DEFAULTS: dict[str, Any] = {
