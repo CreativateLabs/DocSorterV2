@@ -17,7 +17,7 @@ def _resolve_default_config_path() -> Path:
     try:
         from .app_paths import get_config_path, is_frozen
         if is_frozen():
-            return get_config_path()   # ~/Library/Application Support/DocSorter/config.yaml
+            return get_config_path()   # ~/Library/Application Support/DocSorterV2/config.yaml
     except Exception:
         pass
     return Path(__file__).resolve().parent.parent / "config.yaml"  # Dev-Modus

@@ -29,8 +29,9 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-_APP_NAME  = "DocSorter"
-_LOCK_PORT = 47832   # Fester Port nur für Instance-Check (nicht der App-Port)
+_APP_NAME  = "DocSorterV2"
+_LOCK_PORT = 47833   # Fester Port nur für Instance-Check (nicht der App-Port;
+                     # V2 nutzt +1 zu V1, damit beide parallel laufen koennen)
 
 
 def _lock_file_path() -> Path:

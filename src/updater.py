@@ -105,12 +105,12 @@ def _get_cache_dir() -> Path:
     """Plattformspezifisches Cache-Verzeichnis für heruntergeladene Updates."""
     system = platform.system()
     if system == "Darwin":
-        p = Path.home() / "Library" / "Caches" / "DocSorter" / "update"
+        p = Path.home() / "Library" / "Caches" / "DocSorterV2" / "update"
     elif system == "Windows":
         appdata = os.environ.get("LOCALAPPDATA", str(Path.home()))
-        p = Path(appdata) / "DocSorter" / "update"
+        p = Path(appdata) / "DocSorterV2" / "update"
     else:
-        p = Path.home() / ".cache" / "docsorter" / "update"
+        p = Path.home() / ".cache" / "docsorterv2" / "update"
     p.mkdir(parents=True, exist_ok=True)
     return p
 

@@ -31,10 +31,14 @@ def get_bundle_dir() -> Path:
 def get_user_data_dir() -> Path:
     """Beschreibbares Benutzer-Datenverzeichnis (plattformspezifisch).
 
-    - macOS:   ~/Library/Application Support/DocSorter
-    - Windows: %APPDATA%/DocSorter  (= C:/Users/<user>/AppData/Roaming/DocSorter)
-    - Linux:   ~/.local/share/DocSorter
+    - macOS:   ~/Library/Application Support/DocSorterV2
+    - Windows: %APPDATA%/DocSorterV2  (= C:/Users/<user>/AppData/Roaming/DocSorterV2)
+    - Linux:   ~/.local/share/DocSorterV2
     - Dev:     Projektverzeichnis (kein sys.frozen)
+
+    V2 nutzt ein eigenes Verzeichnis, damit bestehende V1-Daten (aus
+    doc-sorter-mvp) unangetastet bleiben und V2-Installationen stets frisch
+    starten. Eine Migration V1 -> V2 wird bei Bedarf separat bereitgestellt.
     """
     if not is_frozen():
         # Entwicklungsmodus: Daten liegen direkt im Projektverzeichnis
@@ -43,14 +47,14 @@ def get_user_data_dir() -> Path:
     import platform
     system = platform.system()
     if system == "Darwin":
-        base = Path.home() / "Library" / "Application Support" / "DocSorter"
+        base = Path.home() / "Library" / "Application Support" / "DocSorterV2"
     elif system == "Windows":
         import os
         appdata = os.environ.get("APPDATA") or str(Path.home() / "AppData" / "Roaming")
-        base = Path(appdata) / "DocSorter"
+        base = Path(appdata) / "DocSorterV2"
     else:
         # Linux / andere Unix
-        base = Path.home() / ".local" / "share" / "DocSorter"
+        base = Path.home() / ".local" / "share" / "DocSorterV2"
 
     base.mkdir(parents=True, exist_ok=True)
     return base
