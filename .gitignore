@@ -1,0 +1,73 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# NiceGUI Runtime-State
+.nicegui/
+
+# Tesseract/OCR temporär
+*.traineddata
+
+# Environment
+.env
+.env.local
+.env.production
+*.secret
+
+# ══════════════════════════════════════════════════════════════════
+# NUTZERDATEN — NIEMALS IN GIT COMMITTEN
+# Enthalten persönliche Daten, Passwort-Hashes und Secrets.
+# Vorlage für neue Installationen: config.default.yaml
+# ══════════════════════════════════════════════════════════════════
+
+# Laufende Konfiguration (enthält absolute Pfade + ggf. API-Keys)
+config.yaml
+
+# Benutzerverwaltung (Konten, Passwort-Hashes, Planstatus)
+_state.json
+
+# Feed-Daten (Aktivitätsverlauf des Nutzers)
+_feed.json
+
+# Lern-Engine: trainierte Modelle und Trainingsdaten
+*.pkl
+training_data.json
+learning_meta.json
+
+# Sprach-Memos
+voice_memos.json
+voice_memos/
+
+# Assistent-Verlauf
+_assistant.json
+
+# Benutzer-Profil
+user_profile.json
+
+# App-Lock (Single Instance Guard)
+*.lock
+
+# Build-Artefakte
+docsorter_setup.iss
+
+# Local Netlify folder
+.netlify

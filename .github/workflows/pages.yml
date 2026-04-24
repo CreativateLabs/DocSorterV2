@@ -1,0 +1,16 @@
+# Diese Workflow ist deaktiviert.
+# Landing Page wird über Netlify deployed (nicht GitHub Pages).
+# Netlify-Deploy läuft lokal via: ./upload_to_netlify.sh <version>
+#
+# Zum Reaktivieren: on:-Block wiederherstellen und jobs einkommentieren.
+
+name: Deploy Landing Page (deaktiviert)
+
+on:
+  workflow_dispatch:  # nur manuell auslösbar — nicht bei push
+
+jobs:
+  disabled:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Dieser Workflow ist deaktiviert. Landing Page läuft auf Netlify."

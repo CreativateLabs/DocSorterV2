@@ -1,0 +1,41 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /Users/ninobornhausser/doc-sorter-mvp/.claude/scripts/syntax_check_file.py",
+            "timeout": 10,
+            "statusMessage": "Syntax-Check …"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /Users/ninobornhausser/doc-sorter-mvp/.claude/scripts/syntax_check_all.py",
+            "timeout": 30,
+            "statusMessage": "Vollständiger Syntax-Check aller src/**/*.py …"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)",
+      "Bash(python3 -c:*)",
+      "Bash(python3 .claude/scripts/*)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)"
+    ]
+  }
+}

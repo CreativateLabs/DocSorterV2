@@ -1,0 +1,133 @@
+# Doc-Sorter Standardkonfiguration
+# ══════════════════════════════════
+# Diese Datei ist die saubere Vorlage die mit dem Installer ausgeliefert wird.
+# Beim ersten Start wird sie in das Benutzer-Datenverzeichnis kopiert.
+#
+# WICHTIG: Keine persönlichen Daten, keine Secrets, keine absoluten Pfade.
+
+paths:
+  inbox:   ~/Documents/DocSorter/inbox
+  archive: ~/Documents/DocSorter/archiv
+  logs:    ~/Documents/DocSorter/logs
+  review:  ~/Documents/DocSorter/archiv/_review
+
+taxonomy:
+  filename_pattern: '{dokumentenart}_{kunde}_{land}_{datum}'
+  folder_pattern:   '{dokumentenart}/{land}/{kunde}/{jahr}'
+
+file_types:
+  - .pdf
+  - .docx
+  - .txt
+  - .md
+  - .png
+  - .jpg
+  - .jpeg
+  - .tif
+  - .tiff
+  - .webp
+
+ocr:
+  languages: eng+deu
+  dpi:       200
+  max_pages: 5
+
+# Standard-Dokumentenarten — Kunde kann erweitern/entfernen.
+# Keywords sind mehrsprachig (de/en/sq).
+document_types:
+  rechnung:
+    keywords_de: [rechnung, rechnungsnummer, rechnungsbetrag, invoice, MwSt, USt, netto, brutto, zahlbar, fällig, gesamtbetrag]
+    keywords_en: [invoice, bill, billing, payment due, amount due, total amount, VAT]
+    keywords_sq: [fature, fatura, faturë, TVSH, shuma totale, pagesa]
+  vertrag:
+    keywords_de: [vertrag, vereinbarung, vertragspartner, unterzeichnet, vertragswerk, laufzeit, kündigung, parteien]
+    keywords_en: [contract, agreement, signed, parties, term, termination, clause]
+    keywords_sq: [kontratë, kontrate, marreveshje, nënshkruar, palët, afati]
+  brief:
+    keywords_de: [sehr geehrte, mit freundlichen grüßen, betreff, hiermit, zu ihrer information, wir teilen mit]
+    keywords_en: [dear sir, dear madam, sincerely, regards, yours faithfully, please find enclosed]
+    keywords_sq: [i nderuar, me respekt, ju njoftojmë, lidhur me]
+  angebot:
+    keywords_de: [angebot, kostenvoranschlag, angebotsnummer, unverbindlich, leistungsverzeichnis, gültig bis]
+    keywords_en: [offer, proposal, quotation, quote, estimate, valid until]
+    keywords_sq: [ofertë, oferte, propozim, vlerësim, vlefshme deri]
+  mahnung:
+    keywords_de: [mahnung, zahlungserinnerung, zahlungsverzug, inkasso, forderung, überfällig, offener betrag, letzte mahnung]
+    keywords_en: [reminder, dunning, overdue, collection, payment reminder, outstanding, debt]
+    keywords_sq: [kujtesë pagese, perkujtim, paralajmërim, detyrim, i papaguar]
+  bericht:
+    keywords_de: [bericht, zusammenfassung, auswertung, protokoll, ergebnis, feststellung, empfehlung]
+    keywords_en: [report, summary, analysis, review, findings, recommendation, assessment]
+    keywords_sq: [raport, përmbledhje, analizë, gjetje, rekomandim]
+  kündigung:
+    keywords_de: [kündigung, fristgerecht, ordentliche kündigung, kündigungsfrist, zum nächstmöglichen, mietvertrag kündigung]
+    keywords_en: [termination, notice, cancellation, notice period, end of contract]
+    keywords_sq: [ndërprerje, njoftim, anulim, afat njoftimi]
+  lieferschein:
+    keywords_de: [lieferschein, lieferung, empfänger, wareneingang, versand, menge, artikel]
+    keywords_en: [delivery note, packing slip, shipping note, dispatch note, goods received]
+    keywords_sq: [faturë dërgese, dërgesë, marrës, mallra]
+  lohnabrechnung:
+    keywords_de: [lohnabrechnung, gehaltsabrechnung, bruttolohn, nettolohn, sozialversicherung, steuerklasse, arbeitnehmer, personal]
+    keywords_en: [payslip, salary statement, payroll, gross salary, net salary, tax deduction]
+    keywords_sq: [listë pagash, pagë bruto, pagë neto, sigurim shoqëror]
+  bewerbung:
+    keywords_de: [bewerbung, anschreiben, lebenslauf, stellenausschreibung, bewerbungsmappe, bewerber, referenzen, motivationsschreiben, werdegang]
+    keywords_en: [application, cover letter, cv, curriculum vitae, resume, applicant, motivation letter, references]
+    keywords_sq: [aplikim pune, letër motivimi, cv, biografi, aplikant, referenca]
+  steuerbescheid:
+    keywords_de: [steuerbescheid, finanzamt, einkommensteuer, festsetzung, steuererstattung, steuervorauszahlung, steuer]
+    keywords_en: [tax assessment, tax notice, tax return, income tax, tax refund]
+    keywords_sq: [vlerësim tatimor, zyra e tatimeve, tatim mbi të ardhurat, rimbursim tatimor]
+
+# Bekannte Kunden/Firmen — Nutzer traegt selbst ein
+known_customers: []
+
+# Laender — Nutzer traegt selbst ein
+countries: {}
+
+confidence:
+  min_text_length:   30
+  uncertain_if_missing:
+    - kunde
+    - dokumentenart
+
+processing:
+  max_files_per_run: 100
+  dry_run_default:   false
+
+llm:
+  enabled:      false
+  provider:     ollama
+  model:        ''
+  fallback_only: true
+  cache_results: true
+  ollama_host:  http://localhost:11434
+  ollama_model: llama3.2
+
+watcher:
+  enabled:           false
+  poll_interval:     5.0
+  debounce_seconds:  2.0
+  auto_process:      true
+
+email_accounts: []
+calendar_paths: []
+
+email_webhook:
+  enabled:        false
+  provider:       generic
+  secret:         ''
+  public_url:     ''
+  mailgun_api_key: ''
+
+messenger_webhook:
+  enabled:              false
+  secret:               ''
+  whatsapp_verify_token: ''
+  public_url:           ''
+
+feed:
+  max_entries: 500
+
+global_keywords: []

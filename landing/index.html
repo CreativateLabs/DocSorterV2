@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Doc-Sorter — KI-Dokumentenverwaltung für Mac & Windows</title>
+  <meta name="description" content="Doc-Sorter sortiert deine Dokumente automatisch mit KI. Kostenlos herunterladen für macOS und Windows. Kein Terminal, keine Vorkenntnisse nötig." />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗂️</text></svg>" />
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#04090f;--bg2:#080f1c;--bg-card:#0a1525;--bg-card2:#0d1b2e;
+      --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.12);
+      --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+      --blue:#3b82f6;--blue2:#60a5fa;--violet:#7c3aed;
+      --cyan:#06b6d4;--green:#22c55e;--amber:#f59e0b;
+      --grad:linear-gradient(135deg,#3b82f6,#7c3aed,#06b6d4);
+    }
+    html{scroll-behavior:smooth}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+      background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+    a{color:var(--blue2);text-decoration:none}
+    a:hover{text-decoration:underline}
+    .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+
+    /* ── Navbar ── */
+    nav{position:sticky;top:0;z-index:99;background:rgba(4,9,15,.9);
+      backdrop-filter:blur(18px);border-bottom:1px solid var(--border)}
+    .nav-i{display:flex;align-items:center;justify-content:space-between;
+      height:58px;padding:0 24px;max-width:1080px;margin:0 auto}
+    .logo{display:flex;align-items:center;gap:9px;font-size:1.05rem;
+      font-weight:700;color:var(--text);text-decoration:none}
+    .logo:hover{text-decoration:none}
+    .logo em{font-size:1.3rem;font-style:normal}
+    .free-tag{font-size:.6rem;font-weight:700;text-transform:uppercase;
+      letter-spacing:.06em;color:var(--green);background:rgba(34,197,94,.12);
+      border:1px solid rgba(34,197,94,.3);border-radius:999px;padding:2px 7px}
+    .nav-links{display:flex;align-items:center;gap:22px}
+    .nav-links a{font-size:.85rem;color:var(--text2);font-weight:500;
+      transition:color .15s}
+    .nav-links a:hover{color:var(--text);text-decoration:none}
+    @media(max-width:680px){.nav-links{display:none}}
+
+    /* ── Hero ── */
+    .hero{position:relative;overflow:hidden;padding:110px 0 80px;text-align:center}
+    .glow{position:absolute;top:-180px;left:50%;transform:translateX(-50%);
+      width:750px;height:550px;border-radius:50%;pointer-events:none;
+      background:radial-gradient(circle,rgba(59,130,246,.18) 0%,rgba(124,58,237,.09) 40%,transparent 70%)}
+    .hero-eyebrow{display:inline-flex;align-items:center;gap:6px;
+      background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.28);
+      border-radius:999px;padding:4px 14px;margin-bottom:22px;
+      font-size:.78rem;font-weight:600;color:var(--blue2)}
+    h1{font-size:clamp(2.4rem,6vw,4.2rem);font-weight:800;line-height:1.06;
+      letter-spacing:-.03em;background:var(--grad);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      background-clip:text;margin-bottom:18px}
+    .hero-sub{font-size:clamp(.95rem,2vw,1.2rem);color:var(--text2);
+      max-width:580px;margin:0 auto 44px;line-height:1.75}
+
+    /* ── SMART DOWNLOAD (das Herzstück) ── */
+    .smart-dl{position:relative;display:inline-flex;flex-direction:column;
+      align-items:center;gap:0;margin-bottom:20px}
+    .dl-main-btn{display:inline-flex;align-items:center;gap:14px;
+      padding:18px 36px;border-radius:16px;font-size:1.05rem;font-weight:800;
+      cursor:pointer;text-decoration:none;transition:all .2s;color:#fff;
+      background:var(--grad);
+      box-shadow:0 4px 28px rgba(59,130,246,.4)}
+    .dl-main-btn:hover{transform:translateY(-3px);
+      box-shadow:0 10px 40px rgba(59,130,246,.55);
+      text-decoration:none;color:#fff}
+    .dl-main-btn .pl-icon{font-size:2rem;line-height:1}
+    .dl-main-btn .pl-text b{display:block;font-size:1.1rem}
+    .dl-main-btn .pl-text small{font-size:.72rem;opacity:.8;font-weight:400}
+    .dl-meta{font-size:.75rem;color:var(--text3);margin-top:10px}
+    .dl-alt{font-size:.78rem;margin-top:6px}
+    .dl-alt a{color:var(--text2)}
+
+    .hero-btns{display:flex;justify-content:center;flex-wrap:wrap;gap:14px;
+      margin-bottom:12px}
+    .btn{display:inline-flex;align-items:center;gap:9px;
+      padding:12px 24px;border-radius:12px;font-size:.9rem;font-weight:700;
+      cursor:pointer;transition:all .2s;text-decoration:none;border:none}
+    .btn:hover{text-decoration:none;transform:translateY(-2px)}
+    .btn-ghost{background:rgba(255,255,255,.06);border:1px solid var(--border2);
+      color:var(--text2)}
+    .btn-ghost:hover{background:rgba(255,255,255,.1);color:var(--text)}
+    .btn-mac{background:linear-gradient(135deg,#1c1c1e,#3a3a3c);color:#fff;
+      border:1px solid #555}
+    .btn-mac:hover{background:linear-gradient(135deg,#2c2c2e,#484848);color:#fff}
+    .btn-win{background:linear-gradient(135deg,#0078d7,#005fa3);color:#fff}
+    .btn-win:hover{background:linear-gradient(135deg,#0086ef,#0078d7);color:#fff}
+    .btn-sm{padding:9px 18px;font-size:.82rem}
+
+    /* ── App-Screenshot (Mock) ── */
+    .mockup{max-width:880px;margin:56px auto 0;border-radius:14px;overflow:hidden;
+      border:1px solid var(--border);
+      box-shadow:0 40px 90px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.04)}
+    .mock-bar{background:#141926;padding:11px 14px;
+      display:flex;align-items:center;gap:7px}
+    .dot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+    .mock-body{background:#04090f;padding:24px;
+      display:grid;grid-template-columns:200px 1fr;gap:20px;min-height:340px}
+    @media(max-width:600px){.mock-body{grid-template-columns:1fr}
+      .mock-sb{display:none}}
+    .mock-sb{background:var(--bg-card);border-radius:10px;padding:14px;
+      display:flex;flex-direction:column;gap:6px}
+    .nav-row{display:flex;align-items:center;gap:9px;padding:7px 9px;
+      border-radius:7px;font-size:.75rem;color:var(--text2)}
+    .nav-row.act{background:rgba(59,130,246,.14);color:var(--blue2);font-weight:600}
+    .mock-main{display:flex;flex-direction:column;gap:14px}
+    .mock-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .mc{background:var(--bg-card);border:1px solid var(--border);
+      border-radius:10px;padding:14px}
+    .mc-n{font-size:1.7rem;font-weight:800}.mc-l{font-size:.7rem;color:var(--text2)}
+    .mock-tbl{background:var(--bg-card);border:1px solid var(--border);
+      border-radius:10px;padding:14px}
+    .tr{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);
+      font-size:.74rem}
+    .tr:last-child{border-bottom:none}
+    .tn{flex:2}.tag{padding:2px 7px;border-radius:999px;font-size:.66rem;font-weight:600}
+    .tb{background:rgba(59,130,246,.18);color:var(--blue2)}
+    .tg{background:rgba(34,197,94,.18);color:var(--green)}
+    .tv{background:rgba(124,58,237,.18);color:#a78bfa}
+    .ta{background:rgba(245,158,11,.18);color:var(--amber)}
+
+    /* ── Stats ── */
+    .stats{background:var(--bg-card);border-top:1px solid var(--border);
+      border-bottom:1px solid var(--border);padding:44px 0}
+    .stats-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:28px;text-align:center}
+    .sn{font-size:2.2rem;font-weight:800;background:var(--grad);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .sl{font-size:.82rem;color:var(--text2);margin-top:3px}
+
+    /* ── Sections ── */
+    .sec{padding:88px 0}.sec-sm{padding:60px 0}
+    .eyebrow{font-size:.72rem;font-weight:700;text-transform:uppercase;
+      letter-spacing:.1em;color:var(--blue2);margin-bottom:14px}
+    h2{font-size:clamp(1.7rem,3.5vw,2.6rem);font-weight:800;line-height:1.12;
+      letter-spacing:-.02em;margin-bottom:14px}
+    .sub{font-size:.95rem;color:var(--text2);max-width:500px;line-height:1.75}
+
+    /* ── Feature Cards ── */
+    .feat-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));
+      gap:18px;margin-top:52px}
+    .fc{background:var(--bg-card);border:1px solid var(--border);
+      border-radius:14px;padding:26px;transition:border-color .2s,transform .2s}
+    .fc:hover{border-color:rgba(59,130,246,.35);transform:translateY(-4px)}
+    .fi{width:42px;height:42px;border-radius:11px;display:flex;
+      align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:14px}
+    .fi-b{background:rgba(59,130,246,.14)}.fi-v{background:rgba(124,58,237,.14)}
+    .fi-g{background:rgba(34,197,94,.14)}.fi-c{background:rgba(6,182,212,.14)}
+    .fi-a{background:rgba(245,158,11,.14)}.fi-r{background:rgba(239,68,68,.14)}
+    .ft{font-size:.95rem;font-weight:700;margin-bottom:7px}
+    .fd{font-size:.83rem;color:var(--text2);line-height:1.65}
+
+    /* ── Steps ── */
+    .steps{display:flex;flex-direction:column;gap:40px;margin-top:48px}
+    .step{display:grid;grid-template-columns:56px 1fr;gap:20px;align-items:start}
+    .snum{width:50px;height:50px;border-radius:50%;display:flex;
+      align-items:center;justify-content:center;font-size:1.1rem;font-weight:800;
+      flex-shrink:0;background:var(--grad);box-shadow:0 4px 18px rgba(59,130,246,.3)}
+    .step h3{font-size:1rem;font-weight:700;margin-bottom:6px}
+    .step p{font-size:.85rem;color:var(--text2);line-height:1.7}
+
+    /* ── Download Cards ── */
+    .dl-sec{padding:88px 0;text-align:center;
+      background:linear-gradient(180deg,var(--bg) 0%,#060e1a 50%,var(--bg) 100%);
+      position:relative;overflow:hidden}
+    .dl-glow{position:absolute;bottom:-80px;left:50%;transform:translateX(-50%);
+      width:600px;height:350px;border-radius:50%;
+      background:radial-gradient(circle,rgba(124,58,237,.14),transparent 70%);
+      pointer-events:none}
+    .dl-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));
+      gap:22px;max-width:720px;margin:44px auto 0}
+    .dlc{background:var(--bg-card);border:1px solid var(--border);
+      border-radius:18px;padding:32px 26px;position:relative;overflow:hidden;
+      transition:transform .2s,border-color .2s}
+    .dlc::before{content:'';position:absolute;inset:0;
+      background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(124,58,237,.05));
+      opacity:0;transition:opacity .2s}
+    .dlc:hover{transform:translateY(-5px);border-color:rgba(59,130,246,.3)}
+    .dlc:hover::before{opacity:1}
+    .dlc>*{position:relative;z-index:1}
+    .dl-pl-icon{font-size:2.8rem;display:block;margin-bottom:10px}
+    .dl-pl-title{font-size:1.1rem;font-weight:700;margin-bottom:3px}
+    .dl-pl-desc{font-size:.76rem;color:var(--text2);margin-bottom:20px}
+    .dl-reqs{font-size:.68rem;color:var(--text3);margin-top:14px;line-height:1.6}
+    .dl-reqs a{color:var(--text3)}
+    .dl-reqs a:hover{color:var(--text2)}
+    .included-badge{font-size:.65rem;font-weight:700;
+      background:rgba(34,197,94,.12);color:var(--green);
+      border:1px solid rgba(34,197,94,.25);border-radius:999px;
+      padding:2px 8px;margin-left:6px}
+
+    /* ── Code block ── */
+    .code-box{background:#04090f;border:1px solid var(--border);border-radius:10px;
+      padding:18px 20px;font-family:'SF Mono',Consolas,monospace;font-size:.78rem;
+      color:var(--text2);text-align:left;position:relative;margin-top:28px}
+    .code-comment{color:var(--text3)}
+    .copy-btn{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.06);
+      border:1px solid var(--border);border-radius:7px;padding:4px 10px;
+      font-size:.7rem;color:var(--text2);cursor:pointer;transition:all .15s;font-family:inherit}
+    .copy-btn:hover{background:rgba(255,255,255,.12);color:var(--text)}
+
+    /* ── FAQ ── */
+    .faq-list{margin-top:44px;max-width:700px}
+    .faq-item{border-bottom:1px solid var(--border);padding:22px 0}
+    .faq-item:first-child{border-top:1px solid var(--border)}
+    .faq-q{font-size:.95rem;font-weight:700;cursor:pointer;
+      display:flex;justify-content:space-between;align-items:center;user-select:none}
+    .faq-q::after{content:'+';font-size:1.3rem;color:var(--text3);transition:transform .2s}
+    .faq-item.open .faq-q::after{transform:rotate(45deg)}
+    .faq-a{font-size:.85rem;color:var(--text2);line-height:1.8;
+      max-height:0;overflow:hidden;transition:max-height .3s,padding-top .3s}
+    .faq-item.open .faq-a{max-height:220px;padding-top:10px}
+
+    /* ── Comparison ── */
+    .cmp{width:100%;border-collapse:collapse;margin-top:44px;
+      border:1px solid var(--border);border-radius:14px;overflow:hidden}
+    .cmp th{padding:14px 20px;text-align:left;font-size:.78rem;font-weight:700;
+      text-transform:uppercase;letter-spacing:.06em;color:var(--text2);
+      background:var(--bg-card);border-bottom:1px solid var(--border)}
+    .cmp th.hl{color:var(--blue2);background:rgba(59,130,246,.07)}
+    .cmp td{padding:12px 20px;font-size:.83rem;border-bottom:1px solid var(--border)}
+    .cmp tr:last-child td{border-bottom:none}
+    .cmp td.hl{background:rgba(59,130,246,.04);font-weight:600}
+    .ck{color:var(--green)}.cx{color:var(--text3)}
+    @media(max-width:680px){
+      .cmp th:not(:first-child):not(.hl){display:none}
+      .cmp td:not(:first-child):not(.hl){display:none}
+    }
+
+    /* ── Footer ── */
+    footer{background:var(--bg-card);border-top:1px solid var(--border);padding:44px 0 28px}
+    .foot-g{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:36px}
+    @media(max-width:780px){.foot-g{grid-template-columns:1fr 1fr}}
+    @media(max-width:480px){.foot-g{grid-template-columns:1fr}}
+    .foot-brand p{font-size:.82rem;color:var(--text2);margin-top:10px;line-height:1.7;max-width:260px}
+    .foot-col h4{font-size:.72rem;font-weight:700;text-transform:uppercase;
+      letter-spacing:.08em;color:var(--text3);margin-bottom:14px}
+    .foot-col a{display:block;font-size:.83rem;color:var(--text2);padding:3px 0;
+      transition:color .15s}
+    .foot-col a:hover{color:var(--text);text-decoration:none}
+    .foot-bottom{border-top:1px solid var(--border);margin-top:36px;padding-top:22px;
+      text-align:center;font-size:.75rem;color:var(--text3)}
+
+    /* ── Notification banner ── */
+    #os-banner{display:none;position:fixed;bottom:20px;right:20px;z-index:200;
+      background:var(--bg-card);border:1px solid var(--border2);border-radius:12px;
+      padding:14px 18px;font-size:.82rem;max-width:320px;
+      box-shadow:0 8px 32px rgba(0,0,0,.4)}
+    #os-banner .cl{float:right;cursor:pointer;color:var(--text3);margin-left:12px;
+      font-size:1.1rem;line-height:1}
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav>
+  <div class="nav-i">
+    <a class="logo" href="#">
+      <em>🗂️</em> Doc-Sorter <span class="free-tag">Free</span>
+    </a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#how-it-works">So funktioniert's</a>
+      <a href="#download">Download</a>
+      <a href="#faq">FAQ</a>
+      <a href="https://github.com/docsorter/doc-sorter" target="_blank" rel="noopener">GitHub ↗</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════ HERO ═══════════════════════════════════════ -->
+<section class="hero">
+  <div class="glow"></div>
+  <div class="wrap">
+    <div class="hero-eyebrow">✨ &nbsp; Neu in v0.6: Native Desktop-App für Mac & Windows</div>
+    <h1>Deine Dokumente.<br>Endlich in Ordnung.</h1>
+    <p class="hero-sub">
+      Doc-Sorter erkennt, benennt und sortiert deine PDFs, Rechnungen und Fotos automatisch —
+      lokal auf deinem Computer. Einfach herunterladen, installieren, fertig.
+    </p>
+
+    <!-- ★ SMART DOWNLOAD — passt sich automatisch ans Betriebssystem an ★ -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:32px">
+
+      <!-- Auto-erkannt: wird per JS gesetzt -->
+      <a id="smart-dl-btn" href="#download" class="dl-main-btn" onclick="return handleSmartDownload(event)">
+        <span class="pl-icon" id="smart-icon">⬇️</span>
+        <span class="pl-text">
+          <b id="smart-label">Jetzt kostenlos herunterladen</b>
+          <small id="smart-sub">Betriebssystem wird erkannt…</small>
+        </span>
+      </a>
+
+      <div class="dl-meta" id="smart-meta">Kostenlos · Open Source · Kein Account nötig</div>
+
+      <div class="dl-alt" id="dl-alt-link">
+        Falsches System? &nbsp;
+        <a href="#download" id="dl-alt-other">Alle Downloads anzeigen →</a>
+        &nbsp;·&nbsp;
+        <a href="#already-installed">Bereits installiert?</a>
+      </div>
+    </div>
+
+    <!-- Alle drei Plattformen (für unklare Fälle) -->
+    <div class="hero-btns" id="all-platforms-row" style="display:none">
+      <a id="hero-mac-arm" href="#" class="btn btn-mac btn-sm" onclick="return startDownload('mac-arm64',event)">🍎 Mac (Apple Silicon)</a>
+      <a id="hero-mac-x64" href="#" class="btn btn-mac btn-sm" onclick="return startDownload('mac-intel',event)">🍎 Mac (Intel)</a>
+      <a id="hero-win"     href="#" class="btn btn-win btn-sm" onclick="return startDownload('win',event)">🪟 Windows</a>
+    </div>
+
+    <a href="https://github.com/docsorter/doc-sorter" target="_blank"
+       class="btn btn-ghost btn-sm" style="margin-bottom:48px">📂 Quellcode auf GitHub</a>
+
+    <!-- App-Mockup -->
+    <div class="mockup">
+      <div class="mock-bar">
+        <div class="dot" style="background:#ef4444"></div>
+        <div class="dot" style="background:#f59e0b"></div>
+        <div class="dot" style="background:#22c55e"></div>
+        <div style="flex:1;text-align:center;font-size:.7rem;color:var(--text3);font-weight:600">
+          Doc-Sorter v0.6.0
+        </div>
+      </div>
+      <div class="mock-body">
+        <div class="mock-sb">
+          <div style="font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);padding:3px 8px;margin-bottom:3px">Navigation</div>
+          <div class="nav-row act">💬 Chat & Suche</div>
+          <div class="nav-row">🎙️ Sprachmemos</div>
+          <div class="nav-row">📅 Kalender</div>
+          <div class="nav-row">🤖 Assistent</div>
+          <div class="nav-row">⚙️ Einstellungen</div>
+          <div style="flex:1"></div>
+          <div style="border-top:1px solid var(--border);padding-top:10px;display:flex;flex-direction:column;gap:5px">
+            <div class="nav-row">📥 <span style="flex:1">Inbox</span> <span style="background:rgba(59,130,246,.2);color:var(--blue2);border-radius:999px;padding:1px 7px;font-size:.65rem;font-weight:700">12</span></div>
+            <div class="nav-row">⚠️ <span style="flex:1">Prüfung</span> <span style="background:rgba(245,158,11,.2);color:var(--amber);border-radius:999px;padding:1px 7px;font-size:.65rem;font-weight:700">3</span></div>
+            <div class="nav-row">📦 <span style="flex:1">Archiv</span> <span style="background:rgba(34,197,94,.2);color:var(--green);border-radius:999px;padding:1px 7px;font-size:.65rem;font-weight:700">247</span></div>
+          </div>
+        </div>
+        <div class="mock-main">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="font-size:1.1rem;font-weight:700">📄 Dateien-Übersicht</div>
+            <div style="display:flex;gap:8px">
+              <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:7px;padding:5px 11px;font-size:.7rem;color:var(--text2)">🔍 Suchen…</div>
+              <div style="background:var(--blue);border-radius:7px;padding:5px 11px;font-size:.7rem;color:#fff;font-weight:700">+ Upload</div>
+            </div>
+          </div>
+          <div class="mock-cards">
+            <div class="mc"><div class="mc-n" style="color:var(--blue2)">12</div><div class="mc-l">📥 Inbox</div></div>
+            <div class="mc"><div class="mc-n" style="color:var(--amber)">3</div><div class="mc-l">⚠️ Prüfung</div></div>
+            <div class="mc"><div class="mc-n" style="color:var(--green)">247</div><div class="mc-l">✅ Archiviert</div></div>
+          </div>
+          <div class="mock-tbl">
+            <div class="tr" style="font-weight:700;font-size:.68rem;color:var(--text3)">
+              <div class="tn">Dateiname</div><div style="width:100px">Typ</div><div style="width:55px">Konfidenz</div>
+            </div>
+            <div class="tr"><div class="tn">rechnung_telekom_de_2024-03.pdf</div><div style="width:100px"><span class="tag tb">Rechnung</span></div><div style="width:55px;color:var(--green);font-weight:700">97%</div></div>
+            <div class="tr"><div class="tn">vertrag_mietvertrag_de_2023-01.pdf</div><div style="width:100px"><span class="tag tv">Vertrag</span></div><div style="width:55px;color:var(--green);font-weight:700">94%</div></div>
+            <div class="tr"><div class="tn">kontoauszug_sparkasse_2024-02.pdf</div><div style="width:100px"><span class="tag tg">Kontoauszug</span></div><div style="width:55px;color:var(--green);font-weight:700">89%</div></div>
+            <div class="tr"><div class="tn">scan_dokument_unbekannt.jpg</div><div style="width:100px"><span class="tag ta">Prüfung</span></div><div style="width:55px;color:var(--amber);font-weight:700">38%</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stats -->
+<div class="stats">
+  <div class="wrap">
+    <div class="stats-g">
+      <div><div class="sn">100%</div><div class="sl">Lokal — keine Cloud</div></div>
+      <div><div class="sn">3 Klicks</div><div class="sl">Installiert & bereit</div></div>
+      <div><div class="sn">15+</div><div class="sl">Dokumententypen erkannt</div></div>
+      <div><div class="sn">Gratis</div><div class="sl">Open Source · MIT</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ FEATURES ═══════════════════════════════════ -->
+<section class="sec" id="features">
+  <div class="wrap">
+    <div class="eyebrow">Features</div>
+    <h2>Alles drin. Nichts Überflüssiges.</h2>
+    <p class="sub">Für alle die ihre Dokumente endlich im Griff haben wollen — ohne Abo, ohne Cloud, ohne Vorkenntnisse.</p>
+    <div class="feat-g">
+      <div class="fc"><div class="fi fi-b">🤖</div><div class="ft">KI-Klassifikation</div><div class="fd">3-stufige Erkennung: Keyword → Machine Learning → LLM. Lernt aus jeder Korrektur.</div></div>
+      <div class="fc"><div class="fi fi-v">🔍</div><div class="ft">OCR — Bilder lesen</div><div class="fd">Erkennt Text in gescannten Bildern und Fotos. JPG, PNG, TIFF, WebP und mehr.</div></div>
+      <div class="fc"><div class="fi fi-g">📁</div><div class="ft">Automatisches Sortieren</div><div class="fd">Dokumente werden nach Schema <code style="background:rgba(255,255,255,.07);padding:1px 5px;border-radius:4px;font-size:.78rem">art_kunde_land_datum</code> benannt und einsortiert.</div></div>
+      <div class="fc"><div class="fi fi-c">🧠</div><div class="ft">Lernfähig</div><div class="fd">Jede Korrektur wird gespeichert. Das System wird mit jedem Dokument besser.</div></div>
+      <div class="fc"><div class="fi fi-a">⏱️</div><div class="ft">Nachtarbeiter</div><div class="fd">Automatische Jobs: Inbox täglich scannen, Berichte erstellen, Backup.</div></div>
+      <div class="fc"><div class="fi fi-r">🔒</div><div class="ft">100% Privat</div><div class="fd">Keine Cloud, keine Telemetrie. Alle Daten bleiben auf deinem Computer.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ HOW IT WORKS ═══════════════════════════════ -->
+<section class="sec-sm" id="how-it-works" style="background:linear-gradient(180deg,var(--bg) 0%,#060e1a 50%,var(--bg) 100%)">
+  <div class="wrap">
+    <div class="eyebrow">So einfach geht's</div>
+    <h2>Herunterladen.<br>Installieren. Fertig.</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start;margin-top:8px">
+      <div class="steps">
+        <div class="step">
+          <div class="snum">1</div>
+          <div>
+            <h3>Herunterladen</h3>
+            <p>Klicke den Download-Button oben. Mac: DMG öffnen, App in Programme ziehen. Windows: Setup-EXE starten und dem Assistenten folgen.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="snum">2</div>
+          <div>
+            <h3>Starten & Einrichten</h3>
+            <p>Doc-Sorter öffnet sich als normales App-Fenster — kein Browser, kein Terminal. Beim ersten Start führt ein Assistent durch die Einrichtung.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="snum">3</div>
+          <div>
+            <h3>Dokument ablegen</h3>
+            <p>PDF oder Bild in den Inbox-Ordner legen. Doc-Sorter erkennt es automatisch, benennt und sortiert es.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="snum">4</div>
+          <div>
+            <h3>Finden & Fertig</h3>
+            <p>Im Chat nach "Telekom Rechnung 2023" suchen — alle Treffer sofort sichtbar. Je mehr du nutzt, desto besser wird die KI.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pipeline -->
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-top:8px">
+        <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:18px">Was im Hintergrund passiert</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);border-radius:9px;padding:11px 14px">
+            <div style="font-size:.78rem;font-weight:700;color:var(--blue2)">📖 Text lesen (PDF/Bild/DOCX)</div>
+            <div style="font-size:.68rem;color:var(--text3);margin-top:2px">OCR · pypdf · python-docx</div>
+          </div>
+          <div style="text-align:center;color:var(--text3);font-size:.8rem">↓</div>
+          <div style="background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.25);border-radius:9px;padding:11px 14px">
+            <div style="font-size:.78rem;font-weight:700;color:#a78bfa">🏷️ Klassifizieren</div>
+            <div style="font-size:.68rem;color:var(--text3);margin-top:2px">Keyword → ML → KI</div>
+          </div>
+          <div style="text-align:center;color:var(--text3);font-size:.8rem">↓</div>
+          <div style="background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.25);border-radius:9px;padding:11px 14px">
+            <div style="font-size:.78rem;font-weight:700;color:var(--cyan)">✏️ Umbenennen</div>
+            <div style="font-size:.68rem;color:var(--text3);margin-top:2px">rechnung_telekom_de_2024-03.pdf</div>
+          </div>
+          <div style="text-align:center;color:var(--text3);font-size:.8rem">↓</div>
+          <div style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);border-radius:9px;padding:11px 14px">
+            <div style="font-size:.78rem;font-weight:700;color:var(--green)">📦 Sortieren ins Archiv</div>
+            <div style="font-size:.68rem;color:var(--text3);margin-top:2px">archiv/rechnung/de/telekom/2024/</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ DOWNLOAD ═══════════════════════════════════ -->
+<section class="dl-sec" id="download">
+  <div class="dl-glow"></div>
+  <div class="wrap">
+    <div class="eyebrow">Download</div>
+    <h2>Jetzt kostenlos herunterladen</h2>
+    <p style="color:var(--text2);font-size:.95rem;margin-top:10px">
+      Kein Account. Kein Terminal. Einfach installieren und loslegen.
+    </p>
+
+    <div class="dl-cards">
+      <!-- macOS -->
+      <div class="dlc">
+        <span class="dl-pl-icon">🍎</span>
+        <div class="dl-pl-title">macOS</div>
+        <div class="dl-pl-desc">
+          Apple Silicon (M1–M4) & Intel
+          <span class="included-badge">Tesseract inklusive</span>
+        </div>
+
+        <a id="dl-mac-arm" href="https://doc-sorter-app.netlify.app/downloads/DocSorter-0.6.7-mac-arm64.dmg"
+           class="btn btn-mac" style="width:100%;justify-content:center"
+           onclick="trackDownload('mac-arm64')">
+          <span>⬇️</span>
+          <span>Mac (Apple Silicon M1–M4)<span class="btn-sub" style="display:block;font-size:.68rem;opacity:.75;font-weight:400;margin-top:1px">arm64 · DMG · ~180 MB</span></span>
+        </a>
+        <div id="dl-mac-x64-wrap" style="margin-top:10px;font-size:.8rem;color:var(--text2);text-align:center;line-height:1.4">
+          🔄 Auf Intel Macs läuft die Apple-Silicon-Version oben<br>automatisch via <strong>Rosetta 2</strong> — kein separater Download nötig.
+        </div>
+
+        <div class="dl-reqs">
+          macOS 12 Monterey oder neuer<br>
+          OCR (Texterkennung auf Bildern) ist direkt eingebaut ✓<br>
+          <a href="https://brew.sh" target="_blank">Homebrew</a> optional für erweiterte Sprachpakete
+        </div>
+      </div>
+
+      <!-- Windows -->
+      <div class="dlc">
+        <span class="dl-pl-icon">🪟</span>
+        <div class="dl-pl-title">Windows</div>
+        <div class="dl-pl-desc">
+          Windows 10 & 11, 64-bit
+          <span class="included-badge">Tesseract inklusive</span>
+        </div>
+
+        <a id="dl-win" href="https://doc-sorter-app.netlify.app/downloads/DocSorter-Setup-0.6.7.exe"
+           class="btn btn-win" style="width:100%;justify-content:center"
+           onclick="trackDownload('win')">
+          <span>⬇️</span>
+          <span>Windows Setup<span class="btn-sub" style="display:block;font-size:.68rem;opacity:.75;font-weight:400;margin-top:1px">Installer · ~200 MB</span></span>
+        </a>
+
+        <div class="dl-reqs" style="margin-top:18px">
+          Windows 10 Version 1909 oder neuer (64-bit)<br>
+          Setup installiert alles automatisch — kein Terminal nötig ✓<br>
+          OCR (Texterkennung) ist direkt eingebaut ✓
+        </div>
+      </div>
+    </div>
+
+    <!-- Vergleich: Installer vs. Quellcode -->
+    <div style="margin-top:48px;display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:720px;margin-left:auto;margin-right:auto">
+      <!-- Installer — empfohlen -->
+      <div style="background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.2);border-radius:14px;padding:20px">
+        <div style="font-size:.8rem;font-weight:700;color:var(--green);margin-bottom:8px">
+          ✅ Installer — Empfohlen
+        </div>
+        <ul style="font-size:.78rem;color:var(--text2);line-height:2;list-style:none">
+          <li>✓ Kein Python installieren</li>
+          <li>✓ Kein Terminal öffnen</li>
+          <li>✓ Tesseract OCR inklusive</li>
+          <li>✓ Automatische Updates</li>
+          <li>✓ Normale App-Installation</li>
+        </ul>
+        <a href="#download" class="btn btn-ghost btn-sm" style="margin-top:14px;width:100%;justify-content:center">⬆ Oben herunterladen</a>
+      </div>
+      <!-- Quellcode — für Entwickler -->
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px">
+        <div style="font-size:.8rem;font-weight:700;color:var(--text2);margin-bottom:8px">
+          👨‍💻 Quellcode — Für Entwickler
+        </div>
+        <div class="code-box" style="margin-top:0;padding:14px 16px;font-size:.72rem">
+          <button class="copy-btn" onclick="copyCode(this)">Kopieren</button>
+          <div class="code-comment"># Python 3.10+ installieren</div>
+          <div>git clone github.com/docsorter/doc-sorter</div>
+          <div>cd doc-sorter</div>
+          <div>pip install -e .</div>
+          <div>python dashboard.py</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-size:.72rem;color:var(--text3);margin-top:28px">
+      Version <span class="version-num">0.6.0</span> · MIT Lizenz ·
+      <a href="https://github.com/docsorter/doc-sorter/releases">Alle Versionen auf GitHub</a>
+    </div>
+
+    <!-- Already installed? -->
+    <div id="already-installed" style="margin-top:56px;max-width:600px;margin-left:auto;margin-right:auto;
+      background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);
+      border-radius:16px;padding:28px 32px;text-align:left">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+        <span style="font-size:1.6rem">💡</span>
+        <div>
+          <div style="font-size:1rem;font-weight:700">Bereits installiert?</div>
+          <div style="font-size:.78rem;color:var(--text2)">Kein erneutes Herunterladen nötig</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div>
+          <div style="font-size:.8rem;font-weight:700;color:var(--blue2);margin-bottom:8px">🍎 macOS</div>
+          <ul style="font-size:.78rem;color:var(--text2);line-height:2;list-style:none">
+            <li>→ Finder öffnen</li>
+            <li>→ Programme</li>
+            <li>→ DocSorter.app doppelklicken</li>
+          </ul>
+          <div style="font-size:.72rem;color:var(--text3);margin-top:8px">
+            Update: Neue DMG herunterladen → App ersetzen.<br>
+            Alle Daten bleiben erhalten.
+          </div>
+        </div>
+        <div>
+          <div style="font-size:.8rem;font-weight:700;color:var(--blue2);margin-bottom:8px">🪟 Windows</div>
+          <ul style="font-size:.78rem;color:var(--text2);line-height:2;list-style:none">
+            <li>→ Startmenü öffnen</li>
+            <li>→ "Doc-Sorter" suchen</li>
+            <li>→ App starten</li>
+          </ul>
+          <div style="font-size:.72rem;color:var(--text3);margin-top:8px">
+            Update: Neuen Installer starten — erkennt bestehende<br>
+            Installation automatisch und aktualisiert sie.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ COMPARISON ════════════════════════════════ -->
+<section class="sec">
+  <div class="wrap">
+    <div class="eyebrow">Vergleich</div>
+    <h2>Doc-Sorter vs. Alternativen</h2>
+    <table class="cmp">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th class="hl">🗂️ Doc-Sorter</th>
+          <th>Finder/Explorer</th>
+          <th>Paperless-ngx</th>
+          <th>Adobe Acrobat</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Auto-Klassifikation</td><td class="hl"><span class="ck">✓</span> KI, 3-stufig</td><td><span class="cx">–</span></td><td><span class="ck">✓</span></td><td><span class="cx">–</span></td></tr>
+        <tr><td>OCR (Bildtexterkennung)</td><td class="hl"><span class="ck">✓</span> Eingebaut</td><td><span class="cx">–</span></td><td><span class="ck">✓</span></td><td><span class="ck">✓</span></td></tr>
+        <tr><td>Auto-Umbenennen</td><td class="hl"><span class="ck">✓</span></td><td><span class="cx">–</span></td><td><span class="cx">–</span></td><td><span class="cx">–</span></td></tr>
+        <tr><td>Lernfähig</td><td class="hl"><span class="ck">✓</span></td><td><span class="cx">–</span></td><td>teilweise</td><td><span class="cx">–</span></td></tr>
+        <tr><td>100% lokal</td><td class="hl"><span class="ck">✓</span></td><td><span class="ck">✓</span></td><td>selbst hosten</td><td><span class="cx">–</span></td></tr>
+        <tr><td>Kein Terminal</td><td class="hl"><span class="ck">✓</span> Installer</td><td><span class="ck">✓</span></td><td><span class="cx">Docker nötig</span></td><td><span class="ck">✓</span></td></tr>
+        <tr><td>Preis</td><td class="hl" style="color:var(--green);font-weight:700">Kostenlos</td><td>im OS</td><td>Kostenlos</td><td>ab 23€/Mo</td></tr>
+        <tr><td>Open Source</td><td class="hl"><span class="ck">✓</span> MIT</td><td><span class="cx">–</span></td><td><span class="ck">✓</span></td><td><span class="cx">–</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ FAQ ═══════════════════════════════════════ -->
+<section class="sec-sm" id="faq">
+  <div class="wrap">
+    <div class="eyebrow">FAQ</div>
+    <h2>Häufige Fragen</h2>
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-q">Muss ich etwas extra installieren?</div>
+        <div class="faq-a">Nein — der Installer enthält alles, was Doc-Sorter braucht, inklusive der OCR-Engine für Bildtexterkennung (Tesseract). Du lädst die Datei herunter, führst sie aus und bist fertig. Kein Python, kein Terminal, keine Vorkenntnisse nötig.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Sind meine Dokumente sicher?</div>
+        <div class="faq-a">Ja. Doc-Sorter läuft vollständig lokal auf deinem Computer — kein Dokument verlässt dein Gerät. Die einzige optionale Ausnahme: Wenn du einen Cloud-KI-Anbieter (OpenAI/Anthropic) für verbesserte Klassifikation aktivierst, wird der extrahierte Text analysiert. Das ist komplett optional und standardmäßig deaktiviert.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Welche Dateiformate werden unterstützt?</div>
+        <div class="faq-a">PDF, Word (DOCX), Textdateien (TXT, MD) sowie Bilder (JPG, PNG, TIFF, WebP). Gescannte PDFs werden per OCR gelesen. Passwortgeschützte PDFs werden übersprungen.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Funktioniert Doc-Sorter ohne Internetverbindung?</div>
+        <div class="faq-a">Ja, vollständig. Keyword-Matching und die Lern-Engine (Machine Learning) funktionieren komplett offline. Nur Cloud-KI-Anbieter und der optionale Update-Check brauchen Internet — beides ist standardmäßig deaktiviert.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Wie aktualisiere ich Doc-Sorter?</div>
+        <div class="faq-a">Doc-Sorter prüft beim Start automatisch auf neue Versionen und zeigt eine Benachrichtigung in der App an. Zum Aktualisieren einfach den neuen Installer herunterladen und ausführen — alle Einstellungen, Keywords und Lerndaten bleiben erhalten.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Mac: „App ist beschädigt" oder Gatekeeper-Warnung?</div>
+        <div class="faq-a">Das passiert wenn die App nicht von Apple signiert ist. Öffne System-Einstellungen → Datenschutz & Sicherheit → klicke auf „Trotzdem öffnen". Oder im Terminal: <code style="background:rgba(255,255,255,.07);padding:1px 6px;border-radius:4px">xattr -cr /Applications/DocSorter.app</code>. In zukünftigen Versionen wird die App Apple-signiert sein.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ FOOTER ════════════════════════════════════ -->
+<footer>
+  <div class="wrap">
+    <div class="foot-g">
+      <div class="foot-brand">
+        <div class="logo" style="margin-bottom:4px">
+          <em>🗂️</em> Doc-Sorter <span class="free-tag">Free</span>
+        </div>
+        <p>Lokale KI-Dokumentenverwaltung für Mac und Windows. Open Source, kostenlos, privat.</p>
+      </div>
+      <div class="foot-col">
+        <h4>Produkt</h4>
+        <a href="#features">Features</a>
+        <a href="#download">Download</a>
+        <a href="https://github.com/docsorter/doc-sorter/blob/main/CHANGELOG.md" target="_blank">Changelog</a>
+        <a href="https://github.com/docsorter/doc-sorter/releases" target="_blank">Alle Versionen</a>
+      </div>
+      <div class="foot-col">
+        <h4>Entwicklung</h4>
+        <a href="https://github.com/docsorter/doc-sorter" target="_blank">GitHub</a>
+        <a href="https://github.com/docsorter/doc-sorter/issues" target="_blank">Bug melden</a>
+        <a href="https://github.com/docsorter/doc-sorter/discussions" target="_blank">Diskussionen</a>
+        <a href="https://github.com/docsorter/doc-sorter/blob/main/LICENSE" target="_blank">MIT Lizenz</a>
+      </div>
+      <div class="foot-col">
+        <h4>Hilfe</h4>
+        <a href="#faq">FAQ</a>
+        <a href="https://github.com/docsorter/doc-sorter/wiki" target="_blank">Dokumentation</a>
+        <a href="https://github.com/docsorter/doc-sorter/discussions" target="_blank">Community</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      © 2024 Doc-Sorter · MIT Lizenz · Entwickelt mit ❤️
+    </div>
+  </div>
+</footer>
+
+<!-- ═══════════════════════════════════════ JS ════════════════════════════════════════ -->
+<script>
+// ── Downloads: werden dynamisch aus version.json geladen ─────────────────
+// Nie mehr hardcodiert — version.json wird bei jedem Release aktualisiert.
+// Fallback-Werte — nur aktiv wenn /version.json nicht erreichbar ist.
+// Werden bei jedem Release per CI auf die aktuelle Version gesetzt.
+let VERSION = '0.6.7';
+let URLS = {
+  'mac-arm64': '/downloads/DocSorter-0.6.7-mac-arm64.dmg',
+  // 'mac-intel': nicht verfügbar — Intel-Build noch ausstehend
+  'win':       '/downloads/DocSorter-Setup-0.6.7.exe',
+};
+
+// version.json laden (liegt auf demselben Netlify-Server)
+async function loadVersionInfo() {
+  try {
+    const res = await fetch('/version.json?_=' + Date.now()); // kein Cache
+    if (!res.ok) return;
+    const data = await res.json();
+    VERSION = data.version;
+    URLS = data.downloads;
+
+    // Versionsnummer in UI aktualisieren
+    document.querySelectorAll('.version-num').forEach(el => el.textContent = VERSION);
+
+    // Buttons aktualisieren
+    setDownloadLinks();
+    setupSmartDownload();
+  } catch(e) {
+    // Fallback: hardcodierte Werte bleiben aktiv
+    console.log('version.json nicht erreichbar — nutze Fallback');
+  }
+}
+
+// ── Betriebssystem erkennen ──────────────────────────────────────────────
+function detectOS() {
+  const ua = navigator.userAgent;
+  const pl = navigator.platform || '';
+  if (/Win/i.test(pl) || /Windows/i.test(ua)) return 'win';
+  if (/iPhone|iPad|iPod/.test(ua))            return 'ios';
+  if (/Android/.test(ua))                     return 'android';
+  if (/Mac/i.test(pl) || /Macintosh/i.test(ua)) {
+    // Apple Silicon: neuere Macs laufen arm64
+    // Heuristik: falls kein "Intel" explizit, arm64 bevorzugen
+    return 'mac'; // Details (arm64 vs x64) im Download-Dialog
+  }
+  if (/Linux/i.test(pl)) return 'linux';
+  return 'unknown';
+}
+
+// Kann der Browser feststellen ob es Apple Silicon ist?
+function isMacArm() {
+  // Neueste WebKit-Versionen auf Apple Silicon
+  const gl = document.createElement('canvas').getContext('webgl');
+  if (gl) {
+    const d = gl.getExtension('WEBGL_debug_renderer_info');
+    if (d) {
+      const r = gl.getParameter(d.UNMASKED_RENDERER_WEBGL) || '';
+      if (/apple m[0-9]/i.test(r)) return true;
+    }
+  }
+  // Fallback: neuere macOS Version → wahrscheinlich Apple Silicon
+  const match = navigator.userAgent.match(/OS X (\d+)_(\d+)/);
+  if (match) {
+    const major = parseInt(match[1]);
+    if (major >= 14) return true; // macOS 14+ → sehr wahrscheinlich M-Chip
+    if (major >= 12) return null; // Unbekannt — beides möglich
+  }
+  return false; // Älterer Mac → wahrscheinlich Intel
+}
+
+// ── Smart Download Button konfigurieren ─────────────────────────────────
+function setupSmartDownload() {
+  const os = detectOS();
+  const btn  = document.getElementById('smart-dl-btn');
+  const icon = document.getElementById('smart-icon');
+  const lbl  = document.getElementById('smart-label');
+  const sub  = document.getElementById('smart-sub');
+  const meta = document.getElementById('smart-meta');
+
+  if (os === 'win') {
+    icon.textContent = '🪟';
+    lbl.textContent  = 'Für Windows herunterladen';
+    sub.textContent  = 'Windows 10/11 · 64-bit · ~200 MB';
+    meta.textContent = 'Installer enthält alles — kein Terminal nötig ✓';
+    btn.href         = URLS['win'];
+    btn.onclick      = null;
+    document.getElementById('dl-alt-other').textContent = '🍎 Mac-Version anzeigen →';
+
+  } else if (os === 'mac') {
+    const arm = isMacArm();
+    icon.textContent = '🍎';
+    if (arm === true) {
+      lbl.textContent = 'Für Mac herunterladen (Apple Silicon)';
+      sub.textContent = 'M1 / M2 / M3 / M4 · arm64 · ~180 MB';
+      btn.href        = URLS['mac-arm64'];
+      btn.onclick     = null;
+    } else if (arm === false) {
+      if (URLS['mac-intel']) {
+        lbl.textContent = 'Für Mac herunterladen (Intel)';
+        sub.textContent = 'Intel · x86_64 · ~175 MB';
+        btn.href        = URLS['mac-intel'];
+        btn.onclick     = null;
+      } else {
+        // Intel-Build nicht verfügbar → arm64 empfehlen (läuft via Rosetta 2)
+        lbl.textContent = 'Für Mac herunterladen (Apple Silicon)';
+        sub.textContent = 'Auch auf Intel Macs via Rosetta 2 ✓';
+        btn.href        = URLS['mac-arm64'] || '#download';
+        btn.onclick     = null;
+        meta.textContent = 'DMG öffnen → App nach Programme ziehen → Starten ✓';
+      }
+    } else {
+      // Unklar — Auswahl zeigen
+      lbl.textContent = 'Für Mac herunterladen';
+      sub.textContent = 'Wähle deine Version ↓';
+      btn.href        = '#download';
+    }
+    meta.textContent = 'DMG öffnen → App nach Programme ziehen → Starten ✓';
+    document.getElementById('dl-alt-other').textContent = '🪟 Windows-Version anzeigen →';
+
+  } else if (os === 'ios' || os === 'android') {
+    icon.textContent = '📱';
+    lbl.textContent  = 'Doc-Sorter ist für Desktop verfügbar';
+    sub.textContent  = 'Mac und Windows — öffne die Seite am Computer';
+    btn.style.background = 'rgba(255,255,255,.08)';
+    btn.style.boxShadow  = 'none';
+    meta.textContent = 'Auf dem Mobilgerät nicht verfügbar';
+
+  } else {
+    // Linux / Unbekannt — alle zeigen
+    lbl.textContent = 'Jetzt kostenlos herunterladen';
+    sub.textContent = 'Mac & Windows — alle Versionen ↓';
+    btn.href        = '#download';
+    meta.textContent = 'Quellcode auch für Linux verfügbar';
+    document.getElementById('all-platforms-row').style.display = 'flex';
+  }
+}
+
+function handleSmartDownload(e) {
+  const os = detectOS();
+  if (os === 'win' || os === 'mac') {
+    // href bereits gesetzt — normaler Download
+    return true;
+  }
+  // Scroll zu Download-Sektion
+  e.preventDefault();
+  document.getElementById('download').scrollIntoView({behavior:'smooth'});
+  return false;
+}
+
+function startDownload(platform, e) {
+  if (e) e.preventDefault();
+  const url = URLS[platform];
+  if (url) window.location.href = url;
+  return false;
+}
+
+// Download-Links in allen Buttons setzen
+function setDownloadLinks() {
+  const ids = {
+    'dl-mac-arm': URLS['mac-arm64'],
+    'dl-mac-x64': URLS['mac-intel'],
+    'dl-win':     URLS['win'],
+    'hero-mac-arm': URLS['mac-arm64'],
+    'hero-mac-x64': URLS['mac-intel'],
+    'hero-win':     URLS['win'],
+  };
+  Object.entries(ids).forEach(([id, url]) => {
+    const el = document.getElementById(id);
+    if (el) el.href = url;
+  });
+}
+
+// ── Analytics (optional) ─────────────────────────────────────────────────
+function trackDownload(platform) {
+  if (typeof gtag !== 'undefined') {
+    gtag('event', 'file_download', {event_category:'download', event_label:platform});
+  }
+}
+
+// ── Code kopieren ─────────────────────────────────────────────────────────
+function copyCode(btn) {
+  const box  = btn.closest('.code-box');
+  const text = Array.from(box.querySelectorAll('div'))
+    .map(d => d.textContent).join('\n');
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Kopiert ✓';
+    setTimeout(() => { btn.textContent = 'Kopieren'; }, 2000);
+  });
+}
+
+// ── FAQ Accordion ─────────────────────────────────────────────────────────
+document.querySelectorAll('.faq-q').forEach(q => {
+  q.addEventListener('click', () => {
+    const item = q.closest('.faq-item');
+    const wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    if (!wasOpen) item.classList.add('open');
+  });
+});
+
+// ── Init ──────────────────────────────────────────────────────────────────
+setupSmartDownload();
+setDownloadLinks();
+loadVersionInfo(); // überschreibt mit aktuellster Version aus version.json
+</script>
+</body>
+</html>

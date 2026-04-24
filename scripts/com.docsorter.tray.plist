@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Doc-Sorter Tray Autostart (LaunchAgent)
+
+  Installation:
+    1. Kopiere diese Datei (mit angepasstem {{PROJECT_ROOT}}) nach
+       ~/Library/LaunchAgents/com.docsorter.tray.plist
+    2. Aktiviere:
+       launchctl load ~/Library/LaunchAgents/com.docsorter.tray.plist
+    3. Deaktivieren:
+       launchctl unload ~/Library/LaunchAgents/com.docsorter.tray.plist
+
+  Hilfs-Skript (empfohlen): scripts/install-tray-autostart.sh
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.docsorter.tray</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>{{PROJECT_ROOT}}/scripts/run-tray.sh</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>{{PROJECT_ROOT}}</string>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/docsorter-tray.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/tmp/docsorter-tray.err</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>DOCSORTER_PORT</key>
+    <string>1991</string>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+</dict>
+</plist>

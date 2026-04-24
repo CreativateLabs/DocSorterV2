@@ -1,0 +1,391 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  # ═══════════════════════════════════════════════════════════
+  # macOS — Apple Silicon (M1/M2/M3/M4)
+  # ═══════════════════════════════════════════════════════════
+  build-mac-arm64:
+    name: 🍎 macOS arm64
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Abhängigkeiten installieren
+        run: |
+          pip install --upgrade pip wheel
+          # Kern-Dependencies
+          pip install pyinstaller nicegui pywebview
+          pip install pypdf python-docx pytesseract pdf2image Pillow
+          pip install langdetect python-slugify PyYAML watchdog httpx
+          # ML-Dependencies (optional – kein Fehler wenn nicht verfügbar)
+          pip install sentence-transformers scikit-learn numpy || true
+          # LLM (optional)
+          pip install openai anthropic || true
+
+      - name: Tesseract installieren
+        run: brew install tesseract tesseract-lang
+
+      - name: Version ermitteln
+        id: ver
+        run: |
+          V=$(python -c "from src.version import __version__; print(__version__)")
+          echo "version=$V" >> $GITHUB_OUTPUT
+          echo "Building v$V"
+
+      - name: PyInstaller Build
+        run: |
+          pyinstaller docsorter.spec \
+            --distpath dist/mac \
+            --workpath build/mac \
+            --noconfirm --clean
+          ls -lh dist/mac/
+
+      - name: DMG erstellen
+        run: |
+          V=${{ steps.ver.outputs.version }}
+          DMG="dist/DocSorter-${V}-mac-arm64.dmg"
+
+          brew install create-dmg 2>/dev/null || true
+
+          if command -v create-dmg &>/dev/null; then
+            create-dmg \
+              --volname "DocSorter ${V}" \
+              --window-size 540 380 \
+              --icon-size 120 \
+              --icon "DocSorter.app" 140 190 \
+              --app-drop-link 400 190 \
+              --no-internet-enable \
+              "$DMG" "dist/mac/DocSorter.app" || \
+            hdiutil create -srcfolder "dist/mac/DocSorter.app" \
+              -volname "DocSorter ${V}" -format UDZO "$DMG"
+          else
+            hdiutil create -srcfolder "dist/mac/DocSorter.app" \
+              -volname "DocSorter ${V}" -format UDZO "$DMG"
+          fi
+
+          ls -lh "$DMG"
+
+      # Direkt als Release-Asset hochladen (umgeht Artifact-Storage-Quota).
+      # Erster Upload erstellt das Release, nachfolgende hängen Assets an.
+      - name: DMG an GitHub Release anhängen
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "Doc-Sorter ${{ github.ref_name }}"
+          files: dist/DocSorter-*-mac-arm64.dmg
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+          fail_on_unmatched_files: true
+
+  # ═══════════════════════════════════════════════════════════
+  # macOS Intel: NICHT mehr gebaut.
+  # GitHub hat macos-12 und macos-13 Runner entfernt bzw. auf
+  # Apple Silicon migriert. Intel Macs starten stattdessen die
+  # arm64-Version via Rosetta 2 — funktioniert transparent.
+  # Die Landing-Page weist Benutzer darauf hin.
+  # ═══════════════════════════════════════════════════════════
+
+  # ═══════════════════════════════════════════════════════════
+  # Windows x64
+  # ═══════════════════════════════════════════════════════════
+  build-windows:
+    name: 🪟 Windows x64
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Abhängigkeiten installieren
+        run: |
+          pip install --upgrade pip wheel
+          pip install pyinstaller nicegui pywebview
+          pip install pypdf python-docx pytesseract pdf2image Pillow
+          pip install langdetect python-slugify PyYAML watchdog httpx
+          pip install sentence-transformers scikit-learn numpy
+          pip install openai anthropic || true
+
+      - name: Tesseract installieren (Windows)
+        run: |
+          choco install tesseract --no-progress -y
+          $tessPath = "C:\Program Files\Tesseract-OCR"
+          echo "$tessPath" >> $env:GITHUB_PATH
+          echo "TESSDATA_PREFIX=$tessPath\tessdata" >> $env:GITHUB_ENV
+          echo "TESSERACT_PATH=$tessPath" >> $env:GITHUB_ENV
+          & "$tessPath\tesseract.exe" --version
+        shell: pwsh
+
+      - name: Inno Setup installieren
+        run: choco install innosetup -y --no-progress
+        shell: pwsh
+
+      - name: Version ermitteln
+        id: ver
+        shell: pwsh
+        run: |
+          $V = python -c "import sys; sys.path.insert(0, '.'); from src.version import __version__; print(__version__)"
+          echo "version=$V" >> $env:GITHUB_OUTPUT
+          echo "Building v$V"
+
+      - name: PyInstaller Build
+        run: |
+          # TESSERACT_PATH ist bereits als Env-Var gesetzt (von Tesseract-Install-Schritt)
+          # Das spec-File liest TESSERACT_PATH und bundelt Tesseract automatisch
+          pyinstaller docsorter.spec `
+            --distpath dist\win `
+            --workpath build\win `
+            --noconfirm --clean
+        shell: pwsh
+
+      - name: Inno Setup Installer erstellen
+        shell: pwsh
+        run: |
+          $V = "${{ steps.ver.outputs.version }}"
+          $IssContent = @"
+          [Setup]
+          AppName=Doc-Sorter
+          AppVersion=$V
+          AppPublisher=DocSorter
+          AppPublisherURL=https://docsorter.app
+          DefaultDirName={autopf}\DocSorter
+          DefaultGroupName=DocSorter
+          OutputDir=dist
+          OutputBaseFilename=DocSorter-Setup-$V
+          SetupIconFile=assets\icon.ico
+          Compression=lzma2/ultra64
+          SolidCompression=yes
+          WizardStyle=modern
+          PrivilegesRequired=lowest
+          PrivilegesRequiredOverridesAllowed=dialog
+          UninstallDisplayIcon={app}\DocSorter.exe
+          ArchitecturesInstallIn64BitMode=x64
+          DisableWelcomePage=no
+
+          [Languages]
+          Name: "german"; MessagesFile: "compiler:Languages\German.isl"
+          Name: "english"; MessagesFile: "compiler:Default.isl"
+
+          [Tasks]
+          Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
+
+          [Files]
+          Source: "dist\win\DocSorter\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+          [Icons]
+          Name: "{group}\Doc-Sorter"; Filename: "{app}\DocSorter.exe"
+          Name: "{commondesktop}\Doc-Sorter"; Filename: "{app}\DocSorter.exe"; Tasks: desktopicon
+
+          [Run]
+          Filename: "{app}\DocSorter.exe"; Description: "Doc-Sorter starten"; Flags: nowait postinstall skipifsilent
+
+          [UninstallRun]
+          Filename: "taskkill.exe"; Parameters: "/f /im DocSorter.exe"; Flags: runhidden
+          "@
+          $IssContent | Out-File "setup.iss" -Encoding utf8
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "setup.iss"
+          ls dist\*.exe
+
+      # Direkt als Release-Asset hochladen (umgeht Artifact-Storage-Quota).
+      - name: Installer an GitHub Release anhängen
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "Doc-Sorter ${{ github.ref_name }}"
+          files: dist/DocSorter-Setup-*.exe
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+          fail_on_unmatched_files: true
+
+  # ═══════════════════════════════════════════════════════════
+  # Release-Body / Release-Notes ergänzen
+  # (Binaries sind schon in den Build-Jobs hochgeladen worden)
+  # ═══════════════════════════════════════════════════════════
+  finalize-release:
+    name: 📦 Release-Notes setzen
+    needs: [build-mac-arm64, build-windows]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    steps:
+      - name: Version aus Tag
+        id: ver
+        run: echo "version=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Release-Body aktualisieren
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "Doc-Sorter v${{ steps.ver.outputs.version }}"
+          body: |
+            ## Doc-Sorter v${{ steps.ver.outputs.version }}
+
+            ### Downloads
+
+            | Platform | Datei |
+            |----------|-------|
+            | 🍎 macOS Apple Silicon (M1–M4) | `DocSorter-${{ steps.ver.outputs.version }}-mac-arm64.dmg` |
+            | 🍎 macOS Intel | via Rosetta 2 — die arm64-DMG läuft auch auf Intel Macs |
+            | 🪟 Windows 10/11 (64-bit) | `DocSorter-Setup-${{ steps.ver.outputs.version }}.exe` |
+
+            ### Installation
+            - **macOS**: DMG öffnen → DocSorter.app in Programme ziehen → Starten
+            - **Windows**: Setup-EXE ausführen → Weiter → Fertig
+
+            ### Was ist neu
+            - Native Desktop-App (kein Browser nötig)
+            - Tesseract OCR eingebaut (kein manuelles Installieren)
+            - Automatische Update-Benachrichtigung
+            - Single-Instance-Schutz
+
+            ---
+            🤖 Automatisch gebaut mit [GitHub Actions](.github/workflows/release.yml)
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+
+  # ═══════════════════════════════════════════════════════════
+  # Landing-Page aktualisieren (version.json + Binaries via LFS)
+  # ═══════════════════════════════════════════════════════════
+  update-landing:
+    name: 🌐 Landing-Page synchronisieren
+    needs: [finalize-release]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    steps:
+      - name: Repo auschecken (mit LFS)
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Git LFS einrichten
+        run: git lfs install
+
+      - name: Version aus Tag
+        id: ver
+        run: echo "version=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Release-Assets von GitHub Release herunterladen
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p release-assets
+          gh release download "${{ github.ref_name }}" \
+            --repo ${{ github.repository }} \
+            --dir release-assets \
+            --pattern "*.dmg" \
+            --pattern "*.exe"
+          ls -lh release-assets/
+
+      - name: Alte Binaries ersetzen
+        run: |
+          V="${{ steps.ver.outputs.version }}"
+          mkdir -p landing/downloads
+
+          # Alle alten .dmg / .exe löschen (nur die aktuelle Version bleibt)
+          find landing/downloads -maxdepth 1 -type f \( -name "*.dmg" -o -name "*.exe" \) -delete
+
+          # Neue Binaries einkopieren
+          cp release-assets/DocSorter-${V}-mac-arm64.dmg    landing/downloads/ 2>/dev/null || true
+          # Intel-DMG wird nicht mehr gebaut — Rosetta 2 übernimmt auf Intel Macs
+          cp release-assets/DocSorter-Setup-${V}.exe        landing/downloads/ 2>/dev/null || true
+
+          ls -lh landing/downloads/
+
+      - name: Checksums berechnen
+        id: sums
+        run: |
+          V="${{ steps.ver.outputs.version }}"
+          ARM_SHA=$(sha256sum "landing/downloads/DocSorter-${V}-mac-arm64.dmg" 2>/dev/null | cut -d' ' -f1 || echo "")
+          WIN_SHA=$(sha256sum "landing/downloads/DocSorter-Setup-${V}.exe"      2>/dev/null | cut -d' ' -f1 || echo "")
+          echo "arm=$ARM_SHA" >> $GITHUB_OUTPUT
+          echo "win=$WIN_SHA" >> $GITHUB_OUTPUT
+
+      - name: Fallback-URLs in index.html aktualisieren
+        # Die JS-Logik lädt primär /version.json (immer aktuell).
+        # Die hardcodierten Fallback-Werte sind nur aktiv, wenn version.json
+        # nicht erreichbar ist — trotzdem halten wir sie synchron, damit
+        # niemals ein 404 auf nicht mehr existierende Versionen zeigt.
+        run: |
+          V="${{ steps.ver.outputs.version }}"
+          python3 <<PY
+          import re
+          from pathlib import Path
+          p = Path("landing/index.html")
+          s = p.read_text(encoding="utf-8")
+          s = re.sub(r"DocSorter-\d+\.\d+\.\d+-mac-arm64\.dmg",
+                     f"DocSorter-$V-mac-arm64.dmg", s)
+          s = re.sub(r"DocSorter-Setup-\d+\.\d+\.\d+\.exe",
+                     f"DocSorter-Setup-$V.exe", s)
+          s = re.sub(r"let VERSION = '\d+\.\d+\.\d+';",
+                     f"let VERSION = '$V';", s)
+          p.write_text(s, encoding="utf-8")
+          print("index.html fallback-URLs auf $V aktualisiert")
+          PY
+
+      - name: version.json aktualisieren
+        run: |
+          V="${{ steps.ver.outputs.version }}"
+          python3 <<PY
+          import json, os
+          v   = "$V"
+          arm = "${{ steps.sums.outputs.arm }}"
+          win = "${{ steps.sums.outputs.win }}"
+
+          downloads = {}
+          checksums = {}
+          if arm:
+              downloads["mac-arm64"] = f"/downloads/DocSorter-{v}-mac-arm64.dmg"
+              checksums["mac-arm64"] = arm
+          if win:
+              downloads["win"] = f"/downloads/DocSorter-Setup-{v}.exe"
+              checksums["win"] = win
+
+          data = {
+              "version": v,
+              "downloads": downloads,
+              "checksums": checksums,
+              "release_notes": os.environ.get("RELEASE_NOTES", f"Doc-Sorter v{v}"),
+          }
+          with open("landing/version.json", "w", encoding="utf-8") as f:
+              json.dump(data, f, ensure_ascii=False, indent=2)
+              f.write("\n")
+          print(json.dumps(data, indent=2, ensure_ascii=False))
+          PY
+        env:
+          RELEASE_NOTES: "Automatisches Release v${{ steps.ver.outputs.version }}"
+
+      - name: Commit und Push nach main
+        run: |
+          V="${{ steps.ver.outputs.version }}"
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add landing/version.json landing/downloads/ landing/index.html
+          if git diff --cached --quiet; then
+            echo "Keine Änderungen an der Landing-Page."
+            exit 0
+          fi
+          git commit -m "release: Landing-Page auf v${V} (Binaries + version.json)"
+          git push origin main
