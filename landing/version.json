@@ -1,13 +1,13 @@
 {
-  "version": "2.0.1",
+  "version": "2.0.2",
   "downloads": {
-    "mac-arm64": "https://github.com/CreativateLabs/DocSorterV2/releases/download/v2.0.1/DocSorter-2.0.1-mac-arm64.dmg",
-    "win":       "https://github.com/CreativateLabs/DocSorterV2/releases/download/v2.0.1/DocSorter-Setup-2.0.1.exe"
+    "mac-arm64": "https://github.com/CreativateLabs/DocSorterV2/releases/download/v2.0.2/DocSorter-2.0.2-mac-arm64.dmg",
+    "win":       "https://github.com/CreativateLabs/DocSorterV2/releases/download/v2.0.2/DocSorter-Setup-2.0.2.exe"
   },
   "checksums": {
-    "mac-arm64": "87592ed0b8fd0f6befb0f0c29aeb6d2a8d8559e2795036aa5c5f80baa2f403dc",
-    "win":       "e060e137fc4b8195bee08caeba53d6d5ca47aeae3e8e1fa16f1b17c77ec7a4d6"
+    "mac-arm64": "b5700af2dbbd61a2cfad09617a729ccb8b538dfae77b7ff47b3a75959c811ce9",
+    "win":       "4814b049e723fafbfb585eb9515a02cf50cce1a424053f49cd3e72a23c269fe9"
   },
-  "release_notes": "v2.0.1 — V2-Datenverzeichnis von V1 trennen (DocSorter -> DocSorterV2)",
+  "release_notes": "v2.0.2 — Updater auf Cloudflare Pages migriert, CreativateLabs Org",
   "source": "github_releases"
 }

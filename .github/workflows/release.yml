@@ -393,4 +393,11 @@ jobs:
             exit 0
           fi
           git commit -m "release: Landing-Page auf v${V} (version.json + GitHub-Release-URLs)"
-          git push origin main
+          # Org-Ruleset kann den Push blockieren (branch protection).
+          # In diesem Fall wird die Landing-Page manuell oder via Cloudflare Pages
+          # automatisch deployt — kein Fehler, nur eine Warnung.
+          if ! git push origin main; then
+            echo "::warning::Push auf main wurde durch Branch-Protection blockiert."
+            echo "::warning::Landing-Page-URLs bitte manuell prüfen oder Cloudflare Pages deployt automatisch."
+            exit 0
+          fi
