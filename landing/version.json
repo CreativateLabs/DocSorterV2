@@ -1,12 +1,12 @@
 {
   "version": "2.0.1",
   "downloads": {
-    "mac-arm64": "https://github.com/ninoborn1-stack/DocSorterV2/releases/download/v2.0.1/DocSorter-2.0.1-mac-arm64.dmg",
-    "win":       "https://github.com/ninoborn1-stack/DocSorterV2/releases/download/v2.0.1/DocSorter-Setup-2.0.1.exe"
+    "mac-arm64": "https://github.com/CreativateLabs/DocSorterV2/releases/download/v2.0.1/DocSorter-2.0.1-mac-arm64.dmg",
+    "win":       "https://github.com/CreativateLabs/DocSorterV2/releases/download/v2.0.1/DocSorter-Setup-2.0.1.exe"
   },
   "checksums": {
-    "mac-arm64": "94aa39bc734b35b195345efc09b983c945ad5e4e5bf8b11c68e1605c74c31406",
-    "win":       "9dab50be207faed97557bd76f72277a10927c54945d8edf98dbafb3d52936f36"
+    "mac-arm64": "87592ed0b8fd0f6befb0f0c29aeb6d2a8d8559e2795036aa5c5f80baa2f403dc",
+    "win":       "e060e137fc4b8195bee08caeba53d6d5ca47aeae3e8e1fa16f1b17c77ec7a4d6"
   },
   "release_notes": "v2.0.1 — V2-Datenverzeichnis von V1 trennen (DocSorter -> DocSorterV2)",
   "source": "github_releases"
