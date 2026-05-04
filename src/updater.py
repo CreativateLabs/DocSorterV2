@@ -1,7 +1,7 @@
 """Auto-Updater: Prüft auf neue Versionen und installiert sie direkt.
 
 Ablauf (In-App Update):
-    1. check_for_update()   — Version via Netlify version.json prüfen
+    1. check_for_update()   — Version via Cloudflare Pages version.json prüfen
     2. download_update()    — Installer mit Fortschrittsanzeige laden
     3. prepare_install()    — Installer starten, dann App beenden
        macOS:   DMG mounten → neue .app kopieren → Swap-Script → App.shutdown()
@@ -25,9 +25,9 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-# Netlify — einzige Quelle der Wahrheit für Versionen + Downloads
-VERSION_URL   = "https://doc-sorter-app.netlify.app/version.json"
-DOWNLOAD_BASE = "https://doc-sorter-app.netlify.app"
+# Cloudflare Pages — einzige Quelle der Wahrheit für Versionen + Downloads
+VERSION_URL   = "https://docsorterv2.pages.dev/version.json"
+DOWNLOAD_BASE = ""  # Downloads kommen direkt von GitHub Releases (absolute URLs in version.json)
 
 _TIMEOUT_CHECK    = 8    # Sekunden für Update-Check
 _TIMEOUT_DOWNLOAD = 600  # Sekunden für Download (10 Min)
@@ -61,24 +61,32 @@ def _parse_version(v: str) -> tuple[int, ...]:
 
 
 def _pick_download(downloads: dict[str, str]) -> str:
-    """Passenden Download-Link für das aktuelle Betriebssystem auswählen."""
+    """Passenden Download-Link für das aktuelle Betriebssystem auswählen.
+
+    version.json enthält seit v2.0.2 absolute GitHub-Release-URLs —
+    DOWNLOAD_BASE wird nicht mehr vorangestellt.
+    """
     system  = platform.system()
     machine = platform.machine().lower()
     is_arm  = machine in ("arm64", "aarch64")
 
+    def _abs(url: str) -> str:
+        """Absolute URL zurückgeben (DOWNLOAD_BASE nur für alte relative Pfade)."""
+        return url if url.startswith("http") else DOWNLOAD_BASE + url
+
     if system == "Darwin":
         if is_arm and "mac-arm64" in downloads:
-            return DOWNLOAD_BASE + downloads["mac-arm64"]
+            return _abs(downloads["mac-arm64"])
         if "mac-intel" in downloads:
-            return DOWNLOAD_BASE + downloads["mac-intel"]
+            return _abs(downloads["mac-intel"])
         for k, v in downloads.items():
             if "mac" in k:
-                return DOWNLOAD_BASE + v
+                return _abs(v)
     elif system == "Windows":
         if "win" in downloads:
-            return DOWNLOAD_BASE + downloads["win"]
+            return _abs(downloads["win"])
 
-    return f"{DOWNLOAD_BASE}/#download"
+    return "https://docsorterv2.pages.dev/#download"
 
 
 def _pick_checksum(checksums: dict[str, str]) -> str:

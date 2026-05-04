@@ -3,4 +3,4 @@
 Wird von dashboard.py, layout.py, updater.py und pyproject.toml referenziert.
 """
 
-__version__ = "2.0.1"
+__version__ = "2.0.2"
